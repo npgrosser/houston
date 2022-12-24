@@ -1,6 +1,8 @@
 package de.npgrosser.houston.context
 
+import de.npgrosser.houston.utils.tokens
 import java.io.File
+import java.nio.file.FileSystems
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.*
@@ -69,26 +71,28 @@ class HoustonContextManager(
      * checks if the given directory or one of its parent directories is trusted
      * as houston context directory
      */
-    private fun isDirectoryTrusted(dir: File): Boolean {
+    internal fun isDirectoryTrusted(dir: File): Boolean {
         if (!dir.isDirectory || !trustedDirsFile.exists()) {
             return false
         }
-        if (Files.isSameFile(dir.toPath(), houstonUserDir)) {
+
+        if (isSamePath(dir.toPath(), houstonUserDir)) {
             return true
         }
 
-        fun fnMatch(pattern: String, path: String): Boolean {
-            val regex =
-                pattern.replace(
-                    Regex("^~"),
-                    System.getProperty("user.home")
-                ).replace(".", "\\.")
-                    .replace("*", ".*")
-            return path.matches(Regex(regex))
+        fun matchPattern(pattern: String, path: String): Boolean {
+            val normalizedPattern = if (pattern.endsWith("/")) pattern.substring(0, pattern.length - 1) else pattern
+            val pathMatcher = FileSystems.getDefault().getPathMatcher("glob:$normalizedPattern")
+            return pathMatcher.matches(Path.of(path))
         }
 
         return trustedDirsFile.readLines().map { it.trim() }.filter { it.isNotEmpty() }
-            .any { fnMatch(it, dir.normalize().absolutePath) || fnMatch(it, dir.normalize().absolutePath + "/") }
+            .any {
+                matchPattern(it, dir.normalize().absolutePath) || matchPattern(
+                    it,
+                    dir.normalize().absolutePath
+                )
+            }
     }
 }
 
@@ -97,15 +101,21 @@ internal fun evaluateContextFileContent(template: String): String {
     var startIndex = result.indexOf("\${")
     while (startIndex != -1) {
         val endIndex = result.indexOf("}", startIndex)
-        val variable = result.substring(startIndex + 2, endIndex)
+        val cmd = result.substring(startIndex + 2, endIndex)
 
-        // Execute the variable as a command and use its output as the new value
-        val output = Scanner(ProcessBuilder(variable).start().inputStream).use {
+
+        // Execute the cmd and use its output as the new value
+        val output = Scanner(ProcessBuilder(cmd.tokens()).start().inputStream).use {
             it.nextLine()
         }
-        result = result.replace("\${$variable}", output)
+        result = result.replace("\${$cmd}", output)
 
         startIndex = result.indexOf("\${")
     }
     return result
+}
+
+internal fun isSamePath(a: Path, b: Path): Boolean {
+    // better for unit testing than Files.isSameFile, because it does not require the files to exist
+    return a.absolute().normalize() == b.absolute().normalize()
 }

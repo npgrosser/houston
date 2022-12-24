@@ -99,12 +99,15 @@ You can use both of them in the same directory.
 _Per convention, the '.houston' file is meant for local use only and should not be committed to version control._
 
 For security reasons, you have to explicitly trust working directories by adding them to the
-~/houston/trusted_dirs when you want to make use of directory specific _context files_ in them.
+~/houston/trusted_dirs file (using glob patterns).
 
 Example content of ~/houston/trusted_dirs:
 
-    /home/user/nico/
-    /home/user/nico/private-projects/*
+    /home/user/my-name
+    /home/user/my-name/my-projects
+    /home/user/my-name/my-projects/**
+
+__
 
 Example houston.txt file content
 

@@ -196,7 +196,7 @@ class HuCommand : CliktCommand() {
         } else {
             println("Ok, let's go!".bold())
             val exitCode = runScript(shell, script)
-            println("Script finished with exit code $exitCode".let { if (exitCode == 0) it.green() else it.red() })
+            println(("Script finished with exit code $exitCode".let { if (exitCode == 0) it.green() else it.red() }).bold())
         }
 
         if (output != null) {

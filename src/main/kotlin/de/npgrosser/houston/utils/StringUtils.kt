@@ -7,6 +7,7 @@ import java.security.NoSuchAlgorithmException
 import java.util.*
 import javax.crypto.Cipher
 import javax.crypto.spec.SecretKeySpec
+import kotlin.collections.ArrayList
 
 
 /**
@@ -42,6 +43,14 @@ fun textHashKey(text: String, length: Int = 32): String {
     return String.format("%0${length}x", BigInteger(1, hash)).substring(0, length)
 }
 
+fun String.tokens(): List<String> {
+    val st = StringTokenizer(this)
+    val tokens = ArrayList<String>(st.countTokens())
+    for (i in 0 until st.countTokens()) {
+        tokens.add(st.nextToken())
+    }
+    return tokens
+}
 
 private fun String.toSecretKey(): SecretKeySpec {
     val sha = MessageDigest.getInstance("SHA-1")
