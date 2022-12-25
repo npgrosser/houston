@@ -10,10 +10,7 @@ import com.github.ajalt.clikt.parameters.types.file
 import com.github.ajalt.clikt.parameters.types.int
 import de.npgrosser.houston.*
 import de.npgrosser.houston.completion.OpenAiPromptCompleter
-import de.npgrosser.houston.config.HoustonConfig
-import de.npgrosser.houston.config.configFile
-import de.npgrosser.houston.config.defaultConfigContent
-import de.npgrosser.houston.config.loadHoustonConfig
+import de.npgrosser.houston.config.*
 import de.npgrosser.houston.context.HoustonContextManager
 import de.npgrosser.houston.context.houstonUserDir
 import de.npgrosser.houston.openai.OpenAi
@@ -36,7 +33,11 @@ class HuCommand : CliktCommand() {
 
     val description by argument().multiple()
     val force by option("-y", "--force", help = "Run the generated program without asking for confirmation").flag()
-    val dry by option("-n", "--dry", help = "Don't run the generated program, just print it to stdout").flag()
+    val dry by option(
+        "-n",
+        "--dry",
+        help = "Don't ask if the generated script should run. Just print it to stdout"
+    ).flag()
     val debug by option("--debug", help = "Print debug information").flag(default = false)
     val packages by option(
         "-p",
@@ -153,6 +154,14 @@ class HuCommand : CliktCommand() {
     }
 
     override fun run() {
+        val runMode = if (dry) {
+            RunMode.DRY
+        } else if (force) {
+            RunMode.FORCE
+        } else {
+            this.userConfig.defaultRunMode
+        }
+
         val scriptDescription = createDetailedDescription()
 
 
@@ -191,7 +200,16 @@ class HuCommand : CliktCommand() {
 
 
         // run the script
-        val shouldRunScript = !dry && (force || confirm("Do you want me to start it for you?") ?: false)
+        fun confirm(text: String): Boolean = this.confirm(text) ?: false
+
+        val shouldRunScript = when (runMode) {
+            RunMode.DRY -> false
+            RunMode.FORCE -> true
+            RunMode.ASK -> {
+                confirm("Do you want me to run it for you?")
+            }
+        }
+
         if (!shouldRunScript) {
             println("Let me know if you need anything else!")
         } else {
@@ -200,10 +218,12 @@ class HuCommand : CliktCommand() {
             println(("Script finished with exit code $exitCode".let { if (exitCode == 0) it.green() else it.red() }).bold())
         }
 
+        // write to output file if specified
         if (output != null) {
-            // write to output file
+
+            // ask for confirmation if user chose to not run the script (expect run mode is dry)
             val shouldSaveScript =
-                shouldRunScript || confirm("Do you want to save the script to ${output?.absolutePath} anyway?") ?: false
+                runMode == RunMode.DRY || shouldRunScript || confirm("Do you still want to save the script to ${output?.absolutePath}?")
             if (shouldSaveScript) {
                 output!!.writeText("#!/bin/$shell\n$script")
                 println("The script was written to ${output!!.absolutePath}".bold())
