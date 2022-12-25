@@ -35,7 +35,8 @@ class HuCommand : CliktCommand() {
     }
 
     val description by argument().multiple()
-    val force by option("-y", help = "Run the generated program without asking for confirmation").flag()
+    val force by option("-y", "--force", help = "Run the generated program without asking for confirmation").flag()
+    val dry by option("-n", "--dry", help = "Don't run the generated program, just print it to stdout").flag()
     val debug by option("--debug", help = "Print debug information").flag(default = false)
     val packages by option(
         "-p",
@@ -190,9 +191,9 @@ class HuCommand : CliktCommand() {
 
 
         // run the script
-        val shouldRunScript = force || confirm("Do you want me to start it for you?") ?: false
+        val shouldRunScript = !dry && (force || confirm("Do you want me to start it for you?") ?: false)
         if (!shouldRunScript) {
-            println("Ok, just let me know if you need anything else.")
+            println("Let me know if you need anything else!")
         } else {
             println("Ok, let's go!".bold())
             val exitCode = runScript(shell, script)
