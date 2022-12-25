@@ -24,7 +24,7 @@ val defaultConfigContent = """
     ##  dry: Print the generated script to stdout
     ##  force: Run the generated script without asking for confirmation
     ## This can still be overwritten by the command line options -y and -n (which are aliases for --force and -dry)
-    # defaultRunMode: dry
+    # defaultRunMode: ask
     
     # Configuration options for the OpenAI API
     openAi:
