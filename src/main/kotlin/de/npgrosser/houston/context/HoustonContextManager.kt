@@ -57,13 +57,14 @@ class HoustonContextManager(
         return all.map { it.absoluteFile.normalize() }.distinct()
     }
 
-    fun readAndEvaluateContextFileContentIfTrusted(houstonFile: File): String {
-        return if (isDirectoryTrusted(houstonFile.absoluteFile.parentFile)) {
-            println("Adding context from ${houstonFile.absoluteFile}")
-            Files.readAllLines(houstonFile.toPath()).joinToString("\n") { evaluateContextFileContent(it) }
+    /**
+     * Returns content of context file if trusted, otherwise null
+     */
+    fun readAndEvaluateContextFileContentIfTrusted(contextFile: File): String? {
+        return if (isDirectoryTrusted(contextFile.absoluteFile.parentFile)) {
+            Files.readAllLines(contextFile.toPath()).joinToString("\n") { evaluateContextFileContent(it) }
         } else {
-            println("WARNING: The directory ${houstonFile.absoluteFile.parentFile} is not trusted - the context file ${houstonFile.absoluteFile} will be ignored.")
-            ""
+            null
         }
     }
 

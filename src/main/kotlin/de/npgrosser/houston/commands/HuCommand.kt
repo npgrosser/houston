@@ -1,5 +1,6 @@
 package de.npgrosser.houston.commands
 
+import com.fasterxml.jackson.databind.DatabindException
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.context
 import com.github.ajalt.clikt.output.CliktHelpFormatter
@@ -17,6 +18,7 @@ import de.npgrosser.houston.openai.OpenAi
 import de.npgrosser.houston.utils.*
 import java.io.File
 import java.util.*
+import kotlin.system.exitProcess
 
 private val osSpecificDefaultShell =
     if (System.getProperty("os.name").lowercase(Locale.getDefault()).contains("win")) "powershell" else "bash"
@@ -93,12 +95,24 @@ class HuCommand : CliktCommand() {
             println("Default config file created at ${configFile.absolutePath}")
         }
 
-        userConfig = loadHoustonConfig()
+        userConfig = try {
+            loadHoustonConfig()
+        } catch (e: DatabindException) {
+            printError("Invalid config file")
+            println("${e.message}".red())
+            exitProcess(1)
+        } catch (e: Exception) {
+            printError("Config file could not be loaded: ${e.message}")
+            exitProcess(1)
+        }
 
-        apiKey = userConfig.openAi?.apiKey ?: System.getenv("OPENAI_API_KEY")
-                ?: error("OPENAI_API_KEY environment variable not set")
+        apiKey = userConfig.openAi?.apiKey ?: System.getenv("OPENAI_API_KEY") ?: ""
+
+        if (apiKey.isBlank()) {
+            printError("OPENAI_API_KEY environment variable not set.")
+            exitProcess(1)
+        }
     }
-
 
     private fun createDetailedDescription(): String {
 
@@ -142,7 +156,13 @@ class HuCommand : CliktCommand() {
         val contextManager = HoustonContextManager()
 
         for (contextFile in contextManager.getRelevantContextFiles(contexts)) {
-            extraInfosSb.appendLine(contextManager.readAndEvaluateContextFileContentIfTrusted(contextFile))
+            val content = contextManager.readAndEvaluateContextFileContentIfTrusted(contextFile)
+            if (content == null) {
+                printWarning("The directory ${contextFile.absoluteFile.parentFile} is not trusted - the context file ${contextFile.absoluteFile} will be ignored.")
+            } else {
+                println("Adding context from ${contextFile.absoluteFile}")
+                extraInfosSb.appendLine(content)
+            }
         }
 
         val extraInfos = extraInfosSb.toString().trim()
@@ -198,7 +218,6 @@ class HuCommand : CliktCommand() {
         }
         println("============================".lightGray())
 
-
         // run the script
         fun confirm(text: String): Boolean = this.confirm(text) ?: false
 
@@ -252,6 +271,14 @@ private fun String.withContextInfo(description: String, details: String): String
     updatedString += "\nHere is $description:\n"
     updatedString += "```\n$details\n```\n"
     return updatedString
+}
+
+private fun printError(message: String) {
+    println("ERROR: $message".red())
+}
+
+private fun printWarning(message: String) {
+    println("WARNING: $message".yellow())
 }
 
 private fun String.withCommandContextInfo(

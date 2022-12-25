@@ -30,6 +30,7 @@ fun String.gray() = "\u001B[90m$this\u001B[0m"
 fun String.cyan() = "\u001B[36m$this\u001B[0m"
 fun String.lightGray() = "\u001B[37m$this\u001B[0m"
 fun String.blue() = "\u001B[34m$this\u001B[0m"
+fun String.yellow() = "\u001B[33m$this\u001B[0m"
 
 fun textHashKey(text: String, length: Int = 32): String {
     val md: MessageDigest
