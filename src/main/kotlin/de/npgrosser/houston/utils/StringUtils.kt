@@ -1,13 +1,11 @@
 package de.npgrosser.houston.utils
 
 import java.math.BigInteger
-import java.nio.file.Files
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
 import java.util.*
 import javax.crypto.Cipher
 import javax.crypto.spec.SecretKeySpec
-import kotlin.collections.ArrayList
 
 
 /**
@@ -69,15 +67,4 @@ fun decryptText(encryptedString: ByteArray, secret: String): String {
     val cipher = Cipher.getInstance("AES/ECB/PKCS5Padding")
     cipher.init(Cipher.DECRYPT_MODE, secret.toSecretKey())
     return String(cipher.doFinal(encryptedString))
-}
-
-
-fun main() {
-    // encrypt decrypt example
-    val text = "hello worldasasssssssssaaaaaaaaaaaddddddd\n\n\nworldasasssssssssaaaaaaaaaaaddddddd"
-    val secret = textHashKey("0a7281d392d6e89d3f5b69a600a2c8ef")
-    val file = Files.createTempFile("encrypted", ".txt").toFile()
-    file.writeBytes(encryptText(text, secret))
-    val decrypted = decryptText(Files.readAllBytes(file.toPath()), secret)
-    print(decrypted)
 }
