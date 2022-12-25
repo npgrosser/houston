@@ -36,7 +36,7 @@ class HuCommand : CliktCommand() {
 
     val description by argument().multiple()
     val force by option("-y", help = "Run the generated program without asking for confirmation").flag()
-    val debug by option("-d", help = "Print debug information").flag(default = false)
+    val debug by option("--debug", help = "Print debug information").flag(default = false)
     val packages by option(
         "-p",
         help = "Provide info about installed packages as context information (support limited to brew atm)"
