@@ -12,6 +12,7 @@ your needs.
 
 ### Requirements
 
+- Git (git binary must be in your PATH for the ez-install script to work)
 - JDK 11 or higher
 - OPENAI_API_KEY environment variable set to [your OpenAI API secret key](https://beta.openai.com/account/api-keys)
 
