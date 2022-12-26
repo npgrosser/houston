@@ -184,13 +184,11 @@ class HuCommand : CliktCommand() {
 
         val scriptDescription = createDetailedDescription()
 
-
         val completer = OpenAiPromptCompleter(
             OpenAi(apiKey),
             stop = listOf("\n```"),
-            maxTokens = maxTokens
-        ).withCache(
-            houstonUserDir.resolve("cache").toFile()
+            maxTokens = maxTokens,
+            cache = FileBasedCache(houstonUserDir.resolve("cache").toFile())
         )
 
         val prefix = "$scriptDescription\n\nThe final $shell script: \n\n```$shell\n#!/bin/$shell\n"
@@ -271,14 +269,6 @@ private fun String.withContextInfo(description: String, details: String): String
     updatedString += "\nHere is $description:\n"
     updatedString += "```\n$details\n```\n"
     return updatedString
-}
-
-private fun printError(message: String) {
-    println("ERROR: $message".red())
-}
-
-private fun printWarning(message: String) {
-    println("WARNING: $message".yellow())
 }
 
 private fun String.withCommandContextInfo(

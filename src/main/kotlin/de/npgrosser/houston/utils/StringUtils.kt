@@ -4,8 +4,6 @@ import java.math.BigInteger
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
 import java.util.*
-import javax.crypto.Cipher
-import javax.crypto.spec.SecretKeySpec
 
 
 /**
@@ -51,20 +49,7 @@ fun String.tokens(): List<String> {
     return tokens
 }
 
-private fun String.toSecretKey(): SecretKeySpec {
-    val sha = MessageDigest.getInstance("SHA-1")
-    val key = Arrays.copyOf(sha.digest(this.toByteArray()), 16)
-    return SecretKeySpec(key, "AES")
+fun ByteArray.base64Encode(): String {
+    return Base64.getEncoder().encodeToString(this)
 }
 
-fun encryptText(stringToEncrypt: String, secret: String): ByteArray {
-    val cipher = Cipher.getInstance("AES/ECB/PKCS5Padding")
-    cipher.init(Cipher.ENCRYPT_MODE, secret.toSecretKey())
-    return cipher.doFinal(stringToEncrypt.toByteArray())
-}
-
-fun decryptText(encryptedString: ByteArray, secret: String): String {
-    val cipher = Cipher.getInstance("AES/ECB/PKCS5Padding")
-    cipher.init(Cipher.DECRYPT_MODE, secret.toSecretKey())
-    return String(cipher.doFinal(encryptedString))
-}

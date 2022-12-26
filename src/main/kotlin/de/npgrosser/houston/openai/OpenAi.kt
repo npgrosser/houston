@@ -11,6 +11,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
+import java.io.Serializable
 import java.util.concurrent.TimeUnit
 import kotlin.system.exitProcess
 
@@ -18,25 +19,26 @@ private val jsonMediaType = "application/json; charset=utf-8".toMediaType()
 
 val objectMapper = ObjectMapper().setPropertyNamingStrategy(SnakeCaseStrategy()).registerKotlinModule()
 
+
 data class CompletionsRequest(
     val prompt: String,
     @JsonInclude(JsonInclude.Include.NON_NULL)
     val suffix: String? = null,
-    val temperature: Int = 0,
+    val temperature: Float = 0f,
     val maxTokens: Int = 2048,
-    val topP: Int = 1,
-    val frequencyPenalty: Int = 0,
-    val presencePenalty: Int = 0,
+    val topP: Float = 1f,
+    val frequencyPenalty: Float = 0f,
+    val presencePenalty: Float = 0f,
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     val stop: List<String> = emptyList(),
     val model: String = "text-davinci-003"
-)
+) : Serializable
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class Choice(val text: String, val finishReason: String, val index: Int)
+data class Choice(val text: String, val finishReason: String, val index: Int) : Serializable
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class Usage(val promptTokens: Int, val totalTokens: Int)
+data class Usage(val promptTokens: Int, val totalTokens: Int) : Serializable
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class CompletionsResponse(
@@ -46,7 +48,7 @@ data class CompletionsResponse(
     val model: String,
     val usage: Usage,
     val created: Long
-)
+) : Serializable
 
 class OpenAi(private val apiKey: String) {
 
