@@ -90,13 +90,20 @@ class HuCommand : CliktCommand() {
         }
         // create default config file if it does not exist
         if (!configFile.exists()) {
-            configFile.createNewFile()
-            configFile.writeText(defaultConfigContent)
-            println("Default config file created at ${configFile.absolutePath}")
+            // if config.yaml exists in the current directory, moving it to config.yml
+            val legacyConfigFile = File(configFile.parentFile, "config.yaml")
+            if (legacyConfigFile.exists()) {
+                println("Found legacy config file (config.yaml). Moving it to ${configFile.absolutePath}")
+                legacyConfigFile.renameTo(configFile)
+            } else {
+                configFile.createNewFile()
+                configFile.writeText(defaultConfigContent)
+                println("Default config file created at ${configFile.absolutePath}")
+            }
         }
 
         userConfig = try {
-            loadHoustonConfig()
+            loadUserConfig()
         } catch (e: DatabindException) {
             printError("Invalid config file")
             println("${e.message}".red())
@@ -187,6 +194,7 @@ class HuCommand : CliktCommand() {
         val completer = OpenAiPromptCompleter(
             OpenAi(apiKey),
             stop = listOf("\n```"),
+            model = model,
             maxTokens = maxTokens,
             cache = FileBasedCache(houstonUserDir.resolve("cache").toFile())
         )

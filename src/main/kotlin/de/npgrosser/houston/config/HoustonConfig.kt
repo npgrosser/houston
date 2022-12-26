@@ -7,7 +7,7 @@ import de.npgrosser.houston.context.houstonUserDir
 import org.intellij.lang.annotations.Language
 import java.io.File
 
-private const val CONFIG_FILE_NAME = "config.yaml"
+private const val CONFIG_FILE_NAME = "config.yml"
 private val yamlObjectMapper = YAMLMapper.builder().enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS).build()
 
 val configFile = File(houstonUserDir.toFile(), CONFIG_FILE_NAME)
@@ -52,7 +52,7 @@ data class HoustonOpenAiConfig(
 )
 
 
-fun loadHoustonConfig(): HoustonConfig {
+fun loadUserConfig(): HoustonConfig {
     return if (configFile.exists()) {
         return yamlObjectMapper.readValue(configFile)
     } else {
