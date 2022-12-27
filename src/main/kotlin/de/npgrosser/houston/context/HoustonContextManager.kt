@@ -82,19 +82,15 @@ class HoustonContextManager(
             return true
         }
 
-        fun matchPattern(pattern: String, path: String): Boolean {
-            val normalizedPattern = if (pattern.endsWith("/")) pattern.substring(0, pattern.length - 1) else pattern
-            val pathMatcher = FileSystems.getDefault().getPathMatcher("glob:$normalizedPattern")
-            return pathMatcher.matches(Path.of(path))
+        fun matchPattern(pattern: String, path: File): Boolean {
+            val normalizedPattern = File(pattern).absoluteFile.normalize().toString().replace("\\", "/")
+            val normalizedPath = path.normalize().absolutePath
+            val pathMatcher = FileSystems.getDefault().getPathMatcher("glob:${normalizedPattern}")
+            return pathMatcher.matches(Path.of(normalizedPath))
         }
 
         return trustedDirsFile.readLines().map { it.trim() }.filter { it.isNotEmpty() }
-            .any {
-                matchPattern(it, dir.normalize().absolutePath) || matchPattern(
-                    it,
-                    dir.normalize().absolutePath
-                )
-            }
+            .any { matchPattern(it, dir) }
     }
 
     internal fun evaluateContextFileContent(template: String): String {
