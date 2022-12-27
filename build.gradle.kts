@@ -14,8 +14,9 @@ repositories {
 
 dependencies {
     testImplementation(kotlin("test"))
-    implementation("com.squareup.okhttp3:okhttp:4.10.0")
     implementation("com.github.ajalt.clikt:clikt:3.5.0")
+    implementation("io.ktor:ktor-client-core:2.2.1")
+    implementation("io.ktor:ktor-client-cio:2.2.1")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.14.1")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.14.1")
 }

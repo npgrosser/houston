@@ -1,17 +1,16 @@
-package de.npgrosser.houston.commands
+package de.npgrosser.houston.utils
 
-import de.npgrosser.houston.utils.tokens
 import java.util.*
 
 
-data class CommandResult(val exitCode: Int, val stdOutput: String, val errOutput: String?)
-interface CommandRunner {
-    fun run(command: String): CommandResult
+data class ProcessResult(val exitCode: Int, val stdOutput: String, val errOutput: String?)
+interface CmdRunner {
+    fun run(cmd: String): ProcessResult
 }
 
-class SimpleCommandRunner : CommandRunner {
-    override fun run(command: String): CommandResult {
-        val process = ProcessBuilder(command.tokens()).start()
+class SimpleCmdRunner : CmdRunner {
+    override fun run(cmd: String): ProcessResult {
+        val process = ProcessBuilder(cmd.tokens()).start()
         val output = Scanner(process.inputStream).use {
             try {
                 it.nextLine()
@@ -31,20 +30,20 @@ class SimpleCommandRunner : CommandRunner {
         val exitCode = process.waitFor()
 
 
-        return CommandResult(exitCode, output, error)
+        return ProcessResult(exitCode, output, error)
     }
 }
 
-class PowerShellCommandRunner : CommandRunner {
-    override fun run(command: String): CommandResult {
-        return SimpleCommandRunner().run("powershell -Command \"$command\"")
+class PowerShellCmdRunner : CmdRunner {
+    override fun run(cmd: String): ProcessResult {
+        return SimpleCmdRunner().run("powershell -Command \"$cmd\"")
     }
 }
 
 fun main() {
     // run command using ProcessBuilder and capture output as String, at the end print output as wells as exit code
     val command = "echo Hello World"
-    val runner = PowerShellCommandRunner()
+    val runner = PowerShellCmdRunner()
     println(runner.run(command))
 
 }

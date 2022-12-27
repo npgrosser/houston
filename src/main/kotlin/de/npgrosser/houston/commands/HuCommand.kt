@@ -211,8 +211,7 @@ class HuCommand : CliktCommand() {
 
         print("Generating $shell script...".bold())
 
-        val script =
-            completer.complete(prefix, suffix)
+        val script = completer.complete(prefix, suffix)
 
         println("\rHere is a $shell script that should do the trick:".bold())
 

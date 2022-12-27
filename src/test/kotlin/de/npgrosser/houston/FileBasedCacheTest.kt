@@ -31,5 +31,4 @@ class FileBasedCacheTest {
         assert(getErrorCount() == 0L)
         assert(getWarningCount() == 0L)
     }
-
 }

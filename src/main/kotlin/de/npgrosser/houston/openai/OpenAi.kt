@@ -6,16 +6,16 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.PropertyNamingStrategies.SnakeCaseStrategy
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.RequestBody.Companion.toRequestBody
-import okhttp3.Response
+import io.ktor.client.*
+import io.ktor.client.call.*
+import io.ktor.client.engine.cio.*
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
+import io.ktor.util.*
+import io.ktor.util.reflect.*
+import kotlinx.coroutines.runBlocking
 import java.io.Serializable
-import java.util.concurrent.TimeUnit
-import kotlin.system.exitProcess
-
-private val jsonMediaType = "application/json; charset=utf-8".toMediaType()
 
 val objectMapper = ObjectMapper().setPropertyNamingStrategy(SnakeCaseStrategy()).registerKotlinModule()
 
@@ -53,22 +53,20 @@ data class CompletionsResponse(
 class OpenAi(private val apiKey: String) {
 
     fun completions(completionsRequest: CompletionsRequest): CompletionsResponse {
-        val client = OkHttpClient.Builder()
-            .readTimeout(300, TimeUnit.SECONDS)
-            .build()
-        val requestBody = objectMapper.writeValueAsString(completionsRequest)
-        val request = Request.Builder()
-            .url("https://api.openai.com/v1/completions")
-            .addHeader("Authorization", "Bearer $apiKey")
-            .post(requestBody.toRequestBody(jsonMediaType))
-            .build()
-        val response: Response = client.newCall(request).execute()
-        if (response.code != 200) {
-            println("Error: " + response.code)
-            println(response.body?.string())
-            exitProcess(1)
-        }
+        val client = HttpClient(CIO)
 
-        return objectMapper.readValue(response.body!!.string())
+        val requestBody: String = objectMapper.writeValueAsString(completionsRequest)
+
+        return runBlocking {
+            val response = client.post("https://api.openai.com/v1/completions") {
+                header("Authorization", "Bearer $apiKey")
+                contentType(ContentType.Application.Json)
+                setBody(requestBody)
+            }
+            if (response.status.value != 200) {
+                error("Error: ${response.status.value} ${response.status.description}")
+            }
+            objectMapper.readValue(response.bodyAsText())
+        }
     }
 }

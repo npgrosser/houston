@@ -1,7 +1,7 @@
 package de.npgrosser.houston.context
 
-import de.npgrosser.houston.commands.CommandRunner
-import de.npgrosser.houston.commands.SimpleCommandRunner
+import de.npgrosser.houston.utils.CmdRunner
+import de.npgrosser.houston.utils.SimpleCmdRunner
 import java.io.File
 import java.nio.file.FileSystems
 import java.nio.file.Files
@@ -14,7 +14,7 @@ val houstonUserDir: Path = Path.of(System.getProperty("user.home")).resolve("hou
 class HoustonContextManager(
     private val houstonDefaultCtxtFile: Path = houstonUserDir.resolve("default.ctxt"),
     private val trustedDirsFile: Path = houstonUserDir.resolve("trusted_dirs"),
-    private val commandRunner: CommandRunner = SimpleCommandRunner()
+    private val cmdRunner: CmdRunner = SimpleCmdRunner()
 ) {
     fun getRelevantContextFiles(customContextNames: List<String>): List<File> {
         // find all houston.ctxt files in the current directory and all parent directories
@@ -101,7 +101,7 @@ class HoustonContextManager(
             val cmd = result.substring(startIndex + 2, endIndex)
 
             // Execute the cmd and use its output as the new value
-            val commandResult = commandRunner.run(cmd)
+            val commandResult = cmdRunner.run(cmd)
             if (commandResult.exitCode != 0) {
                 throw HoustonContextException(
                     "Houston: Command '$cmd' failed with exit code ${commandResult.exitCode} (${
