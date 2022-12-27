@@ -1,11 +1,11 @@
 package de.npgrosser.houston.context
 
-import de.npgrosser.houston.utils.tokens
+import de.npgrosser.houston.commands.CommandRunner
+import de.npgrosser.houston.commands.SimpleCommandRunner
 import java.io.File
 import java.nio.file.FileSystems
 import java.nio.file.Files
 import java.nio.file.Path
-import java.util.*
 import kotlin.io.path.*
 
 val directoryContextFileNames = listOf(".houston", "houston.ctxt")
@@ -13,7 +13,8 @@ val houstonUserDir: Path = Path.of(System.getProperty("user.home")).resolve("hou
 
 class HoustonContextManager(
     private val houstonDefaultCtxtFile: Path = houstonUserDir.resolve("default.ctxt"),
-    private val trustedDirsFile: Path = houstonUserDir.resolve("trusted_dirs")
+    private val trustedDirsFile: Path = houstonUserDir.resolve("trusted_dirs"),
+    private val commandRunner: CommandRunner = SimpleCommandRunner()
 ) {
     fun getRelevantContextFiles(customContextNames: List<String>): List<File> {
         // find all houston.ctxt files in the current directory and all parent directories
@@ -95,26 +96,32 @@ class HoustonContextManager(
                 )
             }
     }
-}
 
-internal fun evaluateContextFileContent(template: String): String {
-    var result = template
-    var startIndex = result.indexOf("\${")
-    while (startIndex != -1) {
-        val endIndex = result.indexOf("}", startIndex)
-        val cmd = result.substring(startIndex + 2, endIndex)
+    internal fun evaluateContextFileContent(template: String): String {
+        var result = template
+        var startIndex = result.indexOf("\${")
+        while (startIndex != -1) {
+            val endIndex = result.indexOf("}", startIndex)
+            val cmd = result.substring(startIndex + 2, endIndex)
 
+            // Execute the cmd and use its output as the new value
+            val commandResult = commandRunner.run(cmd)
+            if (commandResult.exitCode != 0) {
+                throw HoustonContextException(
+                    "Houston: Command '$cmd' failed with exit code ${commandResult.exitCode} (${
+                        commandResult.errOutput?.lines()?.first()
+                    })"
+                )
+            }
 
-        // Execute the cmd and use its output as the new value
-        val output = Scanner(ProcessBuilder(cmd.tokens()).start().inputStream).use {
-            it.nextLine()
+            result = result.replace("\${$cmd}", commandResult.stdOutput)
+
+            startIndex = result.indexOf("\${")
         }
-        result = result.replace("\${$cmd}", output)
-
-        startIndex = result.indexOf("\${")
+        return result
     }
-    return result
 }
+
 
 internal fun isSamePath(a: Path, b: Path): Boolean {
     // better for unit testing than Files.isSameFile, because it does not require the files to exist

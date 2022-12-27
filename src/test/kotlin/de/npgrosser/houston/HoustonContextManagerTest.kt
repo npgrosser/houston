@@ -1,21 +1,26 @@
 package de.npgrosser.houston
 
+import de.npgrosser.houston.commands.PowerShellCommandRunner
 import de.npgrosser.houston.context.HoustonContextManager
-import de.npgrosser.houston.context.evaluateContextFileContent
 import org.junit.jupiter.api.Test
 import java.io.File
 import kotlin.test.assertEquals
 
-/**
- * test for all public functions in ContextFiles.kt
- * using temporary files and directories and mocking
- */
 class HoustonContextManagerTest {
+
     @Test
     fun testEvaluateTemplate() {
         val template = "Hello \${echo World}"
         val expected = "Hello World"
-        val actual = evaluateContextFileContent(template)
+
+        // if windows use powershell to prepare command
+        val manager = if (System.getProperty("os.name").startsWith("Windows")) {
+            HoustonContextManager(commandRunner = PowerShellCommandRunner())
+        } else {
+            HoustonContextManager()
+        }
+
+        val actual = manager.evaluateContextFileContent(template)
         assertEquals(expected, actual)
     }
 
