@@ -67,6 +67,9 @@ class HoustonContextManagerTest {
 
     @Test
     fun testIsDirectoryTrustedWindowsPaths() {
+        if (!System.getProperty("os.name").startsWith("Windows")) {
+            return
+        }
         val pattern0 = "C:\\tmp\\houston\\all"
         val pattern1 = "C:\\tmp\\houston\\all\\*"
         val pattern2 = "C:\\tmp\\houston\\one"
