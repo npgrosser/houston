@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.MapperFeature
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import de.npgrosser.houston.context.houstonUserDir
+import de.npgrosser.houston.generator.DEFAULT_OPEN_AI_MODEL
 import org.intellij.lang.annotations.Language
 import java.io.File
 
@@ -11,7 +12,6 @@ private const val CONFIG_FILE_NAME = "config.yml"
 private val yamlObjectMapper = YAMLMapper.builder().enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS).build()
 
 val configFile = File(houstonUserDir.toFile(), CONFIG_FILE_NAME)
-
 
 @Language("yaml")
 val defaultConfigContent = """
@@ -29,7 +29,7 @@ val defaultConfigContent = """
     # Configuration options for the OpenAI API
     openAi:
       apiKey: null # if not null, will be used instead of the OPENAI_API_KEY environment variable
-      model: "text-davinci-003"
+      model: "$DEFAULT_OPEN_AI_MODEL"
       maxTokens: 1024
     """.trimIndent()
 
@@ -47,7 +47,7 @@ enum class RunMode {
 
 data class HoustonOpenAiConfig(
     val apiKey: String? = null,
-    val model: String = "text-davinci-003",
+    val model: String = DEFAULT_OPEN_AI_MODEL,
     val maxTokens: Int = 1024
 )
 

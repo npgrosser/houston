@@ -72,8 +72,6 @@ The easiest way to provide context information is to make use of one of the pred
 
 ```
 Options:
-  -p          Provide info about installed packages as context information
-              (support limited to brew atm)
   -f PATH     Provide file name and its content as context information
   -t          Provide current file tree as context information
   -td INT     Maximum depth of the file tree (unlimited if not explicitly set)
@@ -186,7 +184,7 @@ It is automatically created when you run `hu` for the first time.
   time it is" instead of "what time is it?").
 - Houston is not perfect. If he doesn't understand you, try to rephrase your request. Often it is enough to just append
   a few more details.
-- Keep your context files small. The GPT-3 model is limited in the number of tokens per request. Try to only add the
+- Keep your context files small. The GPT-3 models are limited in the number of tokens per request. Try to only add the
   information
   that is really necessary. Especially the -c flag feature is meant to help you with this by providing a way to choose
   the relevant context information for each request.

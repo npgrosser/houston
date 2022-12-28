@@ -6,6 +6,14 @@ import java.util.*
 data class ProcessResult(val exitCode: Int, val stdOutput: String, val errOutput: String?)
 interface CmdRunner {
     fun run(cmd: String): ProcessResult
+
+    companion object {
+        fun defaultForSystem(): CmdRunner = when (System.getProperty("os.name").lowercase(Locale.ROOT)) {
+            "windows" -> PowerShellCmdRunner()
+            else -> SimpleCmdRunner()
+        }
+    }
+
 }
 
 class SimpleCmdRunner : CmdRunner {
@@ -38,12 +46,4 @@ class PowerShellCmdRunner : CmdRunner {
     override fun run(cmd: String): ProcessResult {
         return SimpleCmdRunner().run("powershell -Command \"$cmd\"")
     }
-}
-
-fun main() {
-    // run command using ProcessBuilder and capture output as String, at the end print output as wells as exit code
-    val command = "echo Hello World"
-    val runner = PowerShellCmdRunner()
-    println(runner.run(command))
-
 }

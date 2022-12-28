@@ -10,10 +10,12 @@ import com.github.ajalt.clikt.parameters.options.*
 import com.github.ajalt.clikt.parameters.types.file
 import com.github.ajalt.clikt.parameters.types.int
 import de.npgrosser.houston.*
-import de.npgrosser.houston.completion.OpenAiPromptCompleter
 import de.npgrosser.houston.config.*
 import de.npgrosser.houston.context.HoustonContextManager
 import de.npgrosser.houston.context.houstonUserDir
+import de.npgrosser.houston.generator.DEFAULT_OPEN_AI_MODEL
+import de.npgrosser.houston.generator.OpenAiScriptGenerator
+import de.npgrosser.houston.generator.ScriptSpecification
 import de.npgrosser.houston.openai.OpenAi
 import de.npgrosser.houston.utils.*
 import java.io.File
@@ -41,10 +43,6 @@ class HuCommand : CliktCommand() {
         help = "Don't ask if the generated script should run. Just print it to stdout"
     ).flag()
     val debug by option("--debug", help = "Print debug information").flag(default = false)
-    val packages by option(
-        "-p",
-        help = "Provide info about installed packages as context information (support limited to brew atm)"
-    ).flag()
     val files by option("-f", help = "Provide file name and content as context information").file(mustExist = true)
         .multiple()
     val tree by option("-t", help = "Provide current file tree as context information").flag()
@@ -66,7 +64,7 @@ class HuCommand : CliktCommand() {
 
     // region openai
     val model by option("--model", help = "Use a different model than the default one").defaultLazy {
-        userConfig.openAi?.model ?: "text-davinci-003"
+        userConfig.openAi?.model ?: DEFAULT_OPEN_AI_MODEL
     }
     val maxTokens by option("--max-tokens", help = "Use a different token limit than the default one").int()
         .defaultLazy {
@@ -121,63 +119,57 @@ class HuCommand : CliktCommand() {
         }
     }
 
-    private fun createDetailedDescription(): String {
+    private fun createScriptSpec(): ScriptSpecification {
+        val scriptGoal = description.joinToString(" ").trim().ifEmpty { "print Hello World!" }
 
-        var detailedDescription =
-            "The task is to create a $shell script to ${
-                description.joinToString(" ").trim().ifEmpty { "echo Hello World" }
-            }. Make sure it works on ${osInfo()}.\n"
-        for (command in commands) {
-            detailedDescription = detailedDescription.withCommandContextInfo(command)
-        }
+        val contextInfo = mutableListOf<String>()
 
-        if (packages) {
-            detailedDescription =
-                detailedDescription.withCommandContextInfo(
-                    "brew list",
-                    "an overview of installed brew packages that you can use"
-                )
+        contextInfo.add("Must work on ${osInfo()}")
+
+        if (commands.isNotEmpty()) {
+            val cmdRunner = CmdRunner.defaultForSystem()
+            for (cmd in commands) {
+                contextInfo.add("Output of run `$cmd` is: `${cmdRunner.run(cmd)}`")
+            }
         }
 
         if (tree) {
-            val depthInfo = if (treeDepth != null) {
-                " (limited to depth $treeDepth)"
-            } else {
-                ""
-            }
-            detailedDescription = detailedDescription.withContextInfo(
-                "an overview of all files in the current directory$depthInfo",
-                filesRec(treeDepth).map { it.relativeTo(File(".")) }.joinToString("\n")
+            val depthInfo = if (treeDepth != null) " (limited to depth $treeDepth)" else ""
+            contextInfo.add(
+                "an overview of all files in the current directory $depthInfo: ${
+                    filesRec(treeDepth).map {
+                        it.relativeTo(
+                            File(".")
+                        )
+                    }.joinToString("\n")
+                }"
             )
         }
 
         for (file in files) {
-            detailedDescription += "\nThe content of the file ${file.name} is:\n```"
-            detailedDescription += file.readText()
-            detailedDescription += "```\n\n"
+            contextInfo.add("Content of file ${file.name}:\n ```${file.readText()}```")
         }
-
-
-        val extraInfosSb = StringBuilder()
 
         val contextManager = HoustonContextManager()
 
         for (contextFile in contextManager.getRelevantContextFiles(contexts)) {
+
             val content = contextManager.readAndEvaluateContextFileContentIfTrusted(contextFile)
             if (content == null) {
                 printWarning("The directory ${contextFile.absoluteFile.parentFile} is not trusted - the context file ${contextFile.absoluteFile} will be ignored.")
             } else {
                 println("Adding context from ${contextFile.absoluteFile}")
-                extraInfosSb.appendLine(content)
+                if (content.isNotBlank()) {
+                    contextInfo.add(content)
+                }
             }
         }
 
-        val extraInfos = extraInfosSb.toString().trim()
-        if (extraInfos.isNotEmpty()) {
-            detailedDescription += "\nHere is a list of additional information and requirements:\n${extraInfos}"
-        }
-
-        return detailedDescription.trim()
+        return ScriptSpecification(
+            shell,
+            scriptGoal,
+            contextInfo
+        )
     }
 
     override fun run() {
@@ -189,9 +181,9 @@ class HuCommand : CliktCommand() {
             this.userConfig.defaultRunMode
         }
 
-        val scriptDescription = createDetailedDescription()
+        val scriptSpecification = createScriptSpec()
 
-        val completer = OpenAiPromptCompleter(
+        val scriptGenerator = OpenAiScriptGenerator(
             OpenAi(apiKey),
             stop = listOf("\n```"),
             model = model,
@@ -199,19 +191,18 @@ class HuCommand : CliktCommand() {
             cache = FileBasedCache(houstonUserDir.resolve("cache").toFile())
         )
 
-        val prefix = "$scriptDescription\n\nThe final $shell script: \n\n```$shell\n#!/bin/$shell\n"
-        val suffix = null // "\n```"
-
         if (debug) {
-            println("PREFIX")
-            println(prefix.blue())
-            println("SUFFIX")
-            println(suffix)
+            println(scriptSpecification)
+            println("Model: $model")
+            println("Max Tokens: $maxTokens")
+            val (prompt, suffix) = scriptGenerator.generatePromptAndSuffix(scriptSpecification)
+            println("Generated prompt:\n```\n$prompt\n```")
+            println("Generated suffix:\n```\n$suffix\n```")
         }
 
         print("Generating $shell script...".bold())
 
-        val script = completer.complete(prefix, suffix)
+        val script = scriptGenerator.generate(scriptSpecification)
 
         println("\rHere is a $shell script that should do the trick:".bold())
 
@@ -269,21 +260,6 @@ private fun runScript(command: String, scriptContent: String): Int {
         process.waitFor()
         process.exitValue()
     }
-}
-
-private fun String.withContextInfo(description: String, details: String): String {
-    var updatedString = this
-    updatedString += "\nHere is $description:\n"
-    updatedString += "```\n$details\n```\n"
-    return updatedString
-}
-
-private fun String.withCommandContextInfo(
-    command: String,
-    description: String = "the output of the command `$command`"
-): String {
-    val output = ProcessBuilder(command.split(" ")).start().inputStream.bufferedReader().readText()
-    return withContextInfo(description, output)
 }
 
 fun main(args: Array<String>) = HuCommand()
