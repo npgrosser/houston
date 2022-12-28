@@ -22,14 +22,21 @@ your needs.
 
     curl https://raw.githubusercontent.com/npgrosser/Houston/master/scripts/ez-install.sh | sh
 
+#### Uninstall
+
+    curl https://raw.githubusercontent.com/npgrosser/Houston/master/scripts/uninstall.sh | sh
+
 ### Windows
 
 #### Install
 
     powershell -Command "& { (New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/npgrosser/Houston/master/scripts/ez-install.ps1') | Invoke-Expression }"
 
-Add the bin directory to your PATH environment variable.
-The script will tell you where it is located.
+Add the bin directory to your PATH environment variable. The script will tell you where it is located.
+
+#### Uninstall
+
+    powershell -Command "& { (New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/npgrosser/Houston/master/scripts/uninstall.ps1') | Invoke-Expression }"
 
 ## Usage
 
