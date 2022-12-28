@@ -2,11 +2,8 @@
   <img src="images/houston-transparent-enhanced.png" width="400">
 </p>
 
-Houston is an AI Assistant for your Terminal. He translates your instructions, written in plain English, into Bash (or
-PowerShell)
-scripts.
-Furthermore, Houston can use additional context information to provide more accurate and relevant commands for
-your needs.
+Houston is a [context aware](#user-content-context) AI Assistant for your Terminal.
+He translates your instructions, written in plain English, into Bash (or PowerShell) scripts.
 
 ## Installation
 
