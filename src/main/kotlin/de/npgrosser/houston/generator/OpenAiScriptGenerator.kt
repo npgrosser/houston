@@ -4,7 +4,7 @@ import de.npgrosser.houston.openai.CompletionsRequest
 import de.npgrosser.houston.openai.OpenAi
 import de.npgrosser.houston.utils.Cache
 
-const val DEFAULT_OPEN_AI_MODEL = "code-davinci-002"
+const val DEFAULT_OPEN_AI_MODEL = "text-davinci-003"
 
 class OpenAiScriptGenerator(
     private val openAi: OpenAi,
@@ -17,7 +17,7 @@ class OpenAiScriptGenerator(
     internal fun generatePromptAndSuffix(specification: ScriptSpecification): Pair<String, String> {
         val sb = StringBuilder()
 
-        sb.appendLine("# A ${specification.lang} script to ${specification.goal}")
+        sb.appendLine("# Implementation of a ${specification.lang} script to ${specification.goal}")
 
         if (specification.requirements.isNotEmpty()) {
             sb.appendLine("#")

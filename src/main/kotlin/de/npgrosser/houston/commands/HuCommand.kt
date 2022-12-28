@@ -247,20 +247,12 @@ class HuCommand : CliktCommand() {
     }
 }
 
-private fun runScript(command: String, scriptContent: String): Int {
-    return if (command.lowercase() == "powershell") {
-        val scriptFile = File.createTempFile("houston", ".ps1")
-        scriptFile.writeText(scriptContent)
-        val process = ProcessBuilder(command, "-File", scriptFile.absolutePath).inheritIO().start()
-        process.waitFor()
-        scriptFile.delete()
-        process.exitValue()
-    } else {
-        val process = ProcessBuilder(command, "-c", scriptContent).inheritIO().start()
-        process.waitFor()
-        process.exitValue()
-    }
+private fun runScript(shell: String, scriptContent: String): Int {
+    val scriptEscaped = scriptContent.replace("\"", "\\\"")
+    val process = ProcessBuilder(shell, "-c", scriptEscaped).inheritIO().start()
+    process.waitFor()
+    return process.exitValue()
 }
 
-fun main(args: Array<String>) = HuCommand()
-    .main(args)
+
+fun main(args: Array<String>) = HuCommand().main(args)
