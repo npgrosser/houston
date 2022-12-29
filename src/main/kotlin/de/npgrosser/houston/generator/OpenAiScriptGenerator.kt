@@ -17,7 +17,9 @@ class OpenAiScriptGenerator(
     internal fun generatePromptAndSuffix(specification: ScriptSpecification): Pair<String, String> {
         val sb = StringBuilder()
 
-        sb.appendLine("# Implementation of a ${specification.lang} script to ${specification.goal}")
+        sb.appendLine("#!/bin/env ${specification.lang}")
+        sb.appendLine()
+        sb.appendLine("# ${specification.lang} script to ${specification.goal}")
 
         if (specification.requirements.isNotEmpty()) {
             sb.appendLine("#")
