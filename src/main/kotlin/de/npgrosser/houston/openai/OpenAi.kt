@@ -9,6 +9,7 @@ import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
+import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -53,7 +54,11 @@ data class CompletionsResponse(
 class OpenAi(private val apiKey: String) {
 
     fun completions(completionsRequest: CompletionsRequest): CompletionsResponse {
-        val client = HttpClient(CIO)
+        val client = HttpClient(CIO){
+            engine {
+                requestTimeout = 60000
+            }
+        }
 
         val requestBody: String = objectMapper.writeValueAsString(completionsRequest)
 
