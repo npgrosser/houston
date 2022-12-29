@@ -47,7 +47,7 @@ class HoustonContextManager(
 
             for (customContextName in customContextNames) {
                 if (customContextName !in named.map { it.nameWithoutExtension }) {
-                    println("Houston: Context file '$customContextName.ctxt' not found in $houstonUserDir")
+                    throw IllegalArgumentException("Houston: Context file '$customContextName.ctxt' not found in $houstonUserDir")
                 }
             }
 

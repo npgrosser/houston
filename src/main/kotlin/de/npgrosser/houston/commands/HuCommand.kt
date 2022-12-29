@@ -19,6 +19,7 @@ import de.npgrosser.houston.generator.ScriptSpecification
 import de.npgrosser.houston.openai.OpenAi
 import de.npgrosser.houston.utils.*
 import java.io.File
+import java.lang.IllegalArgumentException
 import java.util.*
 import kotlin.system.exitProcess
 
@@ -152,7 +153,13 @@ class HuCommand : CliktCommand() {
 
         val contextManager = HoustonContextManager()
 
-        for (contextFile in contextManager.getRelevantContextFiles(contexts)) {
+        val contextFiles = try {
+            contextManager.getRelevantContextFiles(contexts)
+        } catch (e: IllegalArgumentException) {
+            printError(e.message ?: "Unknown error")
+            exitProcess(1)
+        }
+        for (contextFile in contextFiles) {
 
             val content = contextManager.readAndEvaluateContextFileContentIfTrusted(contextFile)
             if (content == null) {
