@@ -22,6 +22,8 @@ import java.io.File
 import java.lang.IllegalArgumentException
 import java.util.*
 import kotlin.system.exitProcess
+import de.npgrosser.houston.utils.printError as defaultPrintError
+import de.npgrosser.houston.utils.printWarning as defaultPrintWarning
 
 private val osSpecificDefaultShell =
     if (System.getProperty("os.name").lowercase(Locale.getDefault()).contains("win")) "powershell" else "bash"
@@ -58,6 +60,10 @@ class HuCommand : CliktCommand() {
         help = "Add additional Houston Context Files by specifying their name e.g. 'hardware-details' to load ~/.houston/hardware-details.ctxt"
     ).multiple()
 
+    val minimal by option(
+        "--minimal",
+        help = "Only print the generated script without any additional information or syntax highlighting"
+    ).flag(default = false)
 
     val shell by option("--shell", help = "Specify the shell that Houston should use to run commands").defaultLazy {
         userConfig.defaultShell ?: osSpecificDefaultShell
@@ -76,6 +82,18 @@ class HuCommand : CliktCommand() {
     // endregion openai
 
 
+    private fun printInfo(msg: Any?) {
+        if (minimal) return else println(msg)
+    }
+
+    private fun printError(msg: String) {
+        if (minimal) return else defaultPrintError(msg)
+    }
+
+    private fun printWarning(msg: String) {
+        if (minimal) return else defaultPrintWarning(msg)
+    }
+
     /**
      * runs before argument parsing
      */
@@ -92,12 +110,12 @@ class HuCommand : CliktCommand() {
             // if config.yaml exists in the current directory, moving it to config.yml
             val legacyConfigFile = File(configFile.parentFile, "config.yaml")
             if (legacyConfigFile.exists()) {
-                println("Found legacy config file (config.yaml). Moving it to ${configFile.absolutePath}")
+                printWarning("Found legacy config file (config.yaml). Moving it to ${configFile.absolutePath}")
                 legacyConfigFile.renameTo(configFile)
             } else {
                 configFile.createNewFile()
                 configFile.writeText(defaultConfigContent)
-                println("Default config file created at ${configFile.absolutePath}")
+                printInfo("Default config file created at ${configFile.absolutePath}")
             }
         }
 
@@ -105,7 +123,7 @@ class HuCommand : CliktCommand() {
             loadUserConfig()
         } catch (e: DatabindException) {
             printError("Invalid config file")
-            println("${e.message}".red())
+            printInfo("${e.message}".red())
             exitProcess(1)
         } catch (e: Exception) {
             printError("Config file could not be loaded: ${e.message}")
@@ -130,7 +148,7 @@ class HuCommand : CliktCommand() {
         if (commands.isNotEmpty()) {
             val cmdRunner = CmdRunner.defaultForSystem()
             for (cmd in commands) {
-                contextInfo.add("Output of run `$cmd` is: `${cmdRunner.run(cmd)}`")
+                contextInfo.add("Output of run `$cmd` is: `${cmdRunner.run(cmd).stdOutput}`")
             }
         }
 
@@ -165,7 +183,7 @@ class HuCommand : CliktCommand() {
             if (content == null) {
                 printWarning("The directory ${contextFile.absoluteFile.parentFile} is not trusted - the context file ${contextFile.absoluteFile} will be ignored.")
             } else {
-                println("Adding context from ${contextFile.absoluteFile}")
+                printInfo("Adding context from ${contextFile.absoluteFile}")
                 if (content.isNotBlank()) {
                     contextInfo.add(content)
                 }
@@ -199,27 +217,33 @@ class HuCommand : CliktCommand() {
         )
 
         if (debug) {
-            println(scriptSpecification)
-            println("Model: $model")
-            println("Max Tokens: $maxTokens")
+            printInfo(scriptSpecification)
+            printInfo("Model: $model")
+            printInfo("Max Tokens: $maxTokens")
             val (prompt, suffix) = scriptGenerator.generatePromptAndSuffix(scriptSpecification)
-            println("Generated prompt:\n```\n$prompt\n```")
-            println("Generated suffix:\n```\n$suffix\n```")
+            printInfo("Generated prompt:\n```\n$prompt\n```")
+            printInfo("Generated suffix:\n```\n$suffix\n```")
         }
 
-        print("Generating $shell script...".bold())
+        printInfo("Generating $shell script...".bold())
 
         val script = scriptGenerator.generate(scriptSpecification)
 
-        println("\rHere is a $shell script that should do the trick:".bold())
+        printInfo("\rHere is a $shell script that should do the trick:".bold())
 
 
-        println("============================".lightGray())
-        for (line in script.trim().lines()) {
-            val (codeLine, comment) = line.splitFirst("#")
-            println((codeLine.cyan() + comment.gray()).bold())
+
+        if (minimal) {
+            print(script)
+        } else {
+            println("============================".lightGray())
+            for (line in script.trim().lines()) {
+                val (codeLine, comment) = line.splitFirst("#")
+                println((codeLine.cyan() + comment.gray()).bold())
+            }
+            println("============================".lightGray())
         }
-        println("============================".lightGray())
+
 
         // run the script
         fun confirm(text: String): Boolean = this.confirm(text) ?: false
@@ -233,11 +257,11 @@ class HuCommand : CliktCommand() {
         }
 
         if (!shouldRunScript) {
-            println("Let me know if you need anything else!")
+            printInfo("Let me know if you need anything else!")
         } else {
-            println("Ok, let's go!".bold())
+            printInfo("Ok, let's go!".bold())
             val exitCode = runScript(shell, script)
-            println(("Script finished with exit code $exitCode".let { if (exitCode == 0) it.green() else it.red() }).bold())
+            printInfo(("Script finished with exit code $exitCode".let { if (exitCode == 0) it.green() else it.red() }).bold())
         }
 
         // write to output file if specified
@@ -248,7 +272,7 @@ class HuCommand : CliktCommand() {
                 runMode == RunMode.DRY || shouldRunScript || confirm("Do you still want to save the script to ${output?.absolutePath}?")
             if (shouldSaveScript) {
                 output!!.writeText("#!/bin/$shell\n$script")
-                println("The script was written to ${output!!.absolutePath}".bold())
+                printInfo("The script was written to ${output!!.absolutePath}".bold())
             }
         }
     }
