@@ -81,17 +81,19 @@ class HuCommand : CliktCommand() {
     private lateinit var userConfig: HoustonConfig
     // endregion openai
 
+    private var isPrepared = false
+
 
     private fun printInfo(msg: Any?) {
-        if (minimal) return else println(msg)
+        if (isPrepared && minimal) return else println(msg)
     }
 
     private fun printError(msg: String) {
-        if (minimal) return else defaultPrintError(msg)
+        if (isPrepared && minimal) return else defaultPrintError(msg)
     }
 
     private fun printWarning(msg: String) {
-        if (minimal) return else defaultPrintWarning(msg)
+        if (isPrepared && minimal) return else defaultPrintWarning(msg)
     }
 
     /**
@@ -136,6 +138,8 @@ class HuCommand : CliktCommand() {
             printError("OPENAI_API_KEY environment variable not set.")
             exitProcess(1)
         }
+
+        isPrepared = true
     }
 
     private fun createScriptSpec(): ScriptSpecification {
