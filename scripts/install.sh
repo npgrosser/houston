@@ -30,8 +30,8 @@ cp -R build/install/Houston/* "$installdir"
 ln -sf "$installdir/bin/hu" "/usr/local/bin/hu"
 ln -sf "$installdir/bin/hu" "/usr/local/bin/houston"
 
-if ! echo "$PATH" | grep -q "/usr/local/bin"; then
-  echo "In order to use Houston, you must add /usr/local/bin to your PATH."
-fi
-
 echo "Houston has been installed."
+
+if ! echo "$PATH" | grep -q "/usr/local/bin"; then
+  echo "WARNING: In order to use the hu command, you must add /usr/local/bin to your PATH."
+fi
