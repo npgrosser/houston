@@ -1,7 +1,10 @@
 #!/bin/bash
 
 repoUrl="https://github.com/npgrosser/Houston.git"
-repoDir="$TMPDIR/houston.git.ez-install"
+
+tmpDir=${TMPDIR:-/tmp}
+
+repoDir="$tmpDir/houston.git.ez-install"
 repoBranch="master"
 
 originalDir=$(pwd)
