@@ -26,7 +26,7 @@ import de.npgrosser.houston.utils.printError as defaultPrintError
 import de.npgrosser.houston.utils.printWarning as defaultPrintWarning
 
 private val osSpecificDefaultShell =
-    if (System.getProperty("os.name").lowercase(Locale.getDefault()).contains("win")) "powershell" else "bash"
+    if (isWindows()) "powershell" else "bash"
 
 @Suppress("MemberVisibilityCanBePrivate")
 class HuCommand : CliktCommand() {

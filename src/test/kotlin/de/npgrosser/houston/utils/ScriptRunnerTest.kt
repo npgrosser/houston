@@ -8,30 +8,38 @@ class ScriptRunnerTest {
 
     @Test
     fun `simple hello world command`() {
-        // if Windows powershell, else bash
         val runner = ScriptRunner.defaultForSystem()
         val script = "echo 'Hello World'"
         val result = runner.run(script)
-        assertEquals("Hello World", result.stdOutput.trim())
+
         assertEquals("", result.errOutput)
         assertEquals(0, result.exitCode)
+        assertEquals("Hello World", result.stdOutput.trim())
     }
 
     @Test
     fun `more complete script`() {
-        val (script, runner) = if (System.getProperty("os.name").startsWith("Windows")) {
-            """
-            for (${'$'}i = 1; ${'$'}i -le 10; ${'$'}i++) {
-                echo ${'$'}i
+        val runner = ScriptRunner.defaultForSystem(printStdOut = false, printErrOut = false) as ShellScriptRunner
+
+        val script = when (runner.shell) {
+            "bash" -> {
+                """
+                for i in {1..10}
+                do
+                    echo ${'$'}i
+                done
+            """.trimIndent()
             }
-            """.trimIndent() to PowerShellScriptRunner(false, false)
-        } else {
-            """
-            for i in {1..10}
-            do
-                echo ${'$'}i
-            done
-        """.trimIndent() to BashScriptRunner(false, false)
+
+            "powershell", "pwsh" -> {
+                """
+                for (${'$'}i = 1; ${'$'}i -le 10; ${'$'}i++) {
+                    echo ${'$'}i
+                }
+                """.trimIndent()
+            }
+
+            else -> throw IllegalStateException("Unsupported shell ${runner.shell}")
         }
 
 

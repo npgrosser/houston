@@ -1,7 +1,7 @@
 package de.npgrosser.houston
 
-import de.npgrosser.houston.utils.PowerShellScriptRunner
 import de.npgrosser.houston.context.HoustonContextManager
+import de.npgrosser.houston.utils.isWindows
 import org.junit.jupiter.api.Test
 import java.io.File
 import kotlin.test.assertEquals
@@ -13,13 +13,7 @@ class HoustonContextManagerTest {
         val template = "Hello \${echo World}"
         val expected = "Hello World"
 
-        // if windows use powershell to prepare command
-        val manager = if (System.getProperty("os.name").startsWith("Windows")) {
-            HoustonContextManager(cmdRunner = PowerShellScriptRunner())
-        } else {
-            HoustonContextManager()
-        }
-
+        val manager = HoustonContextManager()
         val actual = manager.evaluateContextFileContent(template)
         assertEquals(expected, actual)
     }
@@ -67,7 +61,7 @@ class HoustonContextManagerTest {
 
     @Test
     fun testIsDirectoryTrustedWindowsPaths() {
-        if (!System.getProperty("os.name").startsWith("Windows")) {
+        if (isWindows()) {
             return
         }
         val pattern0 = "C:\\tmp\\houston\\all"

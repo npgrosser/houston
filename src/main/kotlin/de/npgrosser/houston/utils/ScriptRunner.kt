@@ -7,7 +7,6 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.InputStream
-import java.util.*
 
 
 data class ScriptResult(val exitCode: Int, val stdOutput: String, val errOutput: String)
@@ -15,21 +14,45 @@ interface ScriptRunner {
     fun run(scriptContent: String): ScriptResult
 
     companion object {
-        fun defaultForSystem(): ScriptRunner = when (System.getProperty("os.name").lowercase(Locale.ROOT)) {
-            "windows" -> PowerShellScriptRunner()
-            else -> BashScriptRunner()
+        fun defaultForSystem(printStdOut: Boolean = true, printErrOut: Boolean = true): ScriptRunner {
+            return ShellScriptRunner(getSystemSpecificDefaultShell(), printStdOut, printErrOut)
         }
     }
 }
 
 open class ShellScriptRunner(
-    private val shell: String,
+    val shell: String,
     private val printStdOut: Boolean = true,
     private val printErrOut: Boolean = true
 ) : ScriptRunner {
 
+
+    open fun shellArgs(): List<String> {
+        if (shell == "powershell") {
+            return listOf("-File")
+        }
+        return emptyList()
+    }
+
+    open fun fileExtension(): String {
+        return when (shell) {
+            "powershell", "pwsh" -> return "ps1"
+            "shell", "bash" -> "sh"
+            else -> ""
+        }
+    }
+
+    private fun fileSuffix(): String {
+        val extension = fileExtension()
+        return if (extension.isEmpty()) {
+            ""
+        } else {
+            ".$extension"
+        }
+    }
+
     override fun run(scriptContent: String): ScriptResult {
-        val tmpScriptFile = File.createTempFile("houston", ".${shell}").apply {
+        val tmpScriptFile = File.createTempFile("houston", fileSuffix()).apply {
             deleteOnExit()
             val content = if (scriptContent.startsWith("#!")) {
                 scriptContent
@@ -41,7 +64,9 @@ open class ShellScriptRunner(
         }
 
         try {
-            val process = ProcessBuilder(shell, tmpScriptFile.absolutePath).start()
+            val cmd = listOf(shell) + shellArgs() + listOf(tmpScriptFile.absolutePath)
+
+            val process = ProcessBuilder(cmd).start()
 
             val (stdOut, errOut) = runBlocking { collectProcessOutput(process, printStdOut, printErrOut) }
 
@@ -71,7 +96,7 @@ private suspend fun collectProcessOutput(
                 if (print) {
                     println(line)
                 }
-                sb.append(line).append(System.lineSeparator())
+                sb.appendLine(line)
             }
         }
         return sb.toString()
@@ -83,9 +108,3 @@ private suspend fun collectProcessOutput(
         stdOutJob.await() to errOutJob.await()
     }
 }
-
-class BashScriptRunner(printStdOut: Boolean = true, printErrOut: Boolean = true) :
-    ShellScriptRunner("bash", printStdOut, printErrOut)
-
-class PowerShellScriptRunner(printStdOut: Boolean = true, printErrOut: Boolean = true) :
-    ShellScriptRunner("pwsh", printStdOut, printErrOut)

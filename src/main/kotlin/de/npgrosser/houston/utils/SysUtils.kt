@@ -23,16 +23,9 @@ fun osInfo(): String {
     return "$osName$distroInfo $osVersion ($osArch)"
 }
 
-//fun getPowerShellVersion(): String {
-//    val process = ProcessBuilder("powershell", "-Command", "Get-Host").start()
-//    val output = process.inputStream.bufferedReader().readText()
-//    val version = Regex("Version\\s+:\\s+(\\d+\\.\\d+\\.\\d+)").find(output)?.groupValues?.get(1)
-//    return if (version != null) {
-//        "PowerShell $version"
-//    } else {
-//        ""
-//    }
-//}
+fun isWindows(): Boolean = System.getProperty("os.name").startsWith("Windows")
+
+fun getSystemSpecificDefaultShell() = if (isWindows()) "powershell" else "bash"
 
 private fun getLinuxDistroName(): String {
     // Try reading the /etc/os-release file
