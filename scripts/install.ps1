@@ -10,5 +10,15 @@ Copy-Item -Recurse -Force -Destination $installDir ".\build\install\Houston\*"
 Copy-Item -Path "$installDir\bin\hu" -Destination "$installDir\bin\houston"
 
 Write-Output "Houston has been installed"
-Write-Output ""
-Write-Output "Make sure to add $installDir\bin to your PATH environment variable."
+
+
+# check if $installDir\bin is in PATH, if not print warning (not modifiing path here, just warning)
+$envPath = $env:PATH
+$envPath = $envPath.ToLower()
+$installDir = $installDir.ToLower()
+if ($envPath -notlike "*$installDir\bin*")
+{
+    Write-Output ""
+    Write-Output "Make sure to add $installDir\bin to your PATH environment variable."
+}
+
