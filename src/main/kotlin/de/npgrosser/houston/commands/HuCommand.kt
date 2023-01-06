@@ -150,9 +150,9 @@ class HuCommand : CliktCommand() {
         contextInfo.add("Must work on ${osInfo()}")
 
         if (commands.isNotEmpty()) {
-            val cmdRunner = CmdRunner.defaultForSystem()
+            val scriptRunner = ScriptRunner.defaultForSystem()
             for (cmd in commands) {
-                contextInfo.add("Output of run `$cmd` is: `${cmdRunner.run(cmd).stdOutput}`")
+                contextInfo.add("Output of run `$cmd` is: `${scriptRunner.run(cmd).stdOutput}`")
             }
         }
 
@@ -280,14 +280,11 @@ class HuCommand : CliktCommand() {
             }
         }
     }
-}
 
-private fun runScript(shell: String, scriptContent: String): Int {
-    val scriptEscaped = scriptContent.replace("\"", "\\\"")
-    val process = ProcessBuilder(shell, "-c", scriptEscaped).inheritIO().start()
-    process.waitFor()
-    return process.exitValue()
+    private fun runScript(shell: String, scriptContent: String): Int {
+        val runner = ShellScriptRunner(shell)
+        return runner.run(scriptContent).exitCode
+    }
 }
-
 
 fun main(args: Array<String>) = HuCommand().main(args)

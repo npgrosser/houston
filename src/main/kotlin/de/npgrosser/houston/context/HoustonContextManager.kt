@@ -1,7 +1,6 @@
 package de.npgrosser.houston.context
 
-import de.npgrosser.houston.utils.CmdRunner
-import de.npgrosser.houston.utils.SimpleCmdRunner
+import de.npgrosser.houston.utils.ScriptRunner
 import java.io.File
 import java.nio.file.FileSystems
 import java.nio.file.Files
@@ -14,7 +13,7 @@ val houstonUserDir: Path = Path.of(System.getProperty("user.home")).resolve("hou
 class HoustonContextManager(
     private val houstonDefaultCtxtFile: Path = houstonUserDir.resolve("default.ctxt"),
     private val trustedDirsFile: Path = houstonUserDir.resolve("trusted_dirs"),
-    private val cmdRunner: CmdRunner = SimpleCmdRunner()
+    private val cmdRunner: ScriptRunner = ScriptRunner.defaultForSystem()
 ) {
     fun getRelevantContextFiles(customContextNames: List<String>): List<File> {
         // find all houston.ctxt files in the current directory and all parent directories
@@ -105,12 +104,12 @@ class HoustonContextManager(
             if (commandResult.exitCode != 0) {
                 throw HoustonContextException(
                     "Houston: Command '$cmd' failed with exit code ${commandResult.exitCode} (${
-                        commandResult.errOutput?.lines()?.first()
+                        commandResult.errOutput.lines().first()
                     })"
                 )
             }
 
-            result = result.replace("\${$cmd}", commandResult.stdOutput)
+            result = result.replace("\${$cmd}", commandResult.stdOutput.trimEnd())
 
             startIndex = result.indexOf("\${")
         }

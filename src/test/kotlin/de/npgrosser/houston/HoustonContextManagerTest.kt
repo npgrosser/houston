@@ -1,6 +1,6 @@
 package de.npgrosser.houston
 
-import de.npgrosser.houston.utils.PowerShellCmdRunner
+import de.npgrosser.houston.utils.PowerShellScriptRunner
 import de.npgrosser.houston.context.HoustonContextManager
 import org.junit.jupiter.api.Test
 import java.io.File
@@ -15,7 +15,7 @@ class HoustonContextManagerTest {
 
         // if windows use powershell to prepare command
         val manager = if (System.getProperty("os.name").startsWith("Windows")) {
-            HoustonContextManager(cmdRunner = PowerShellCmdRunner())
+            HoustonContextManager(cmdRunner = PowerShellScriptRunner())
         } else {
             HoustonContextManager()
         }
