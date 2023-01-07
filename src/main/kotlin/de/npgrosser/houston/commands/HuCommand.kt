@@ -264,7 +264,7 @@ class HuCommand : CliktCommand() {
             printInfo("Let me know if you need anything else!")
         } else {
             printInfo("Ok, let's go!".bold())
-            val exitCode = runScript(shell, script)
+            val exitCode = ScriptRunner(shell).run(script).exitCode
             printInfo(("Script finished with exit code $exitCode".let { if (exitCode == 0) it.green() else it.red() }).bold())
         }
 
@@ -279,11 +279,6 @@ class HuCommand : CliktCommand() {
                 printInfo("The script was written to ${output!!.absolutePath}".bold())
             }
         }
-    }
-
-    private fun runScript(shell: String, scriptContent: String): Int {
-        val runner = ShellScriptRunner(shell)
-        return runner.run(scriptContent).exitCode
     }
 }
 

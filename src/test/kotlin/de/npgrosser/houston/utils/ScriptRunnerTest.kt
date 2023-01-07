@@ -8,7 +8,7 @@ class ScriptRunnerTest {
 
     @Test
     fun `simple hello world command`() {
-        val runner = ScriptRunner.defaultForSystem()
+        val runner = ScriptRunner.defaultForSystem(suppressOutput = true)
         val script = "echo 'Hello World'"
         val result = runner.run(script)
 
@@ -19,7 +19,7 @@ class ScriptRunnerTest {
 
     @Test
     fun `more complete script`() {
-        val runner = ScriptRunner.defaultForSystem(printStdOut = false, printErrOut = false) as ShellScriptRunner
+        val runner = ScriptRunner.defaultForSystem(suppressOutput = true)
 
         val script = when (runner.shell) {
             "bash" -> {
@@ -44,7 +44,7 @@ class ScriptRunnerTest {
 
 
         val result = runner.run(script)
-        assertEquals("1\n2\n3\n4\n5\n6\n7\n8\n9\n10", result.stdOutput.trim())
+        assertEquals("1\n2\n3\n4\n5\n6\n7\n8\n9\n10", result.stdOutput.trim().replace(System.lineSeparator(), "\n"))
         assertEquals("", result.errOutput)
         assertEquals(0, result.exitCode)
     }

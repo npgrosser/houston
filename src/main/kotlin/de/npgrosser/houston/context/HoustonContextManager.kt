@@ -13,7 +13,7 @@ val houstonUserDir: Path = Path.of(System.getProperty("user.home")).resolve("hou
 class HoustonContextManager(
     private val houstonDefaultCtxtFile: Path = houstonUserDir.resolve("default.ctxt"),
     private val trustedDirsFile: Path = houstonUserDir.resolve("trusted_dirs"),
-    private val cmdRunner: ScriptRunner = ScriptRunner.defaultForSystem()
+    private val cmdRunner: ScriptRunner = ScriptRunner.defaultForSystem(suppressOutput = true)
 ) {
     fun getRelevantContextFiles(customContextNames: List<String>): List<File> {
         // find all houston.ctxt files in the current directory and all parent directories

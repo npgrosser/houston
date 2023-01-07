@@ -10,22 +10,16 @@ import java.io.InputStream
 
 
 data class ScriptResult(val exitCode: Int, val stdOutput: String, val errOutput: String)
-interface ScriptRunner {
-    fun run(scriptContent: String): ScriptResult
 
+open class ScriptRunner(
+    val shell: String,
+    private val suppressOutput: Boolean = false,
+) {
     companion object {
-        fun defaultForSystem(printStdOut: Boolean = true, printErrOut: Boolean = true): ScriptRunner {
-            return ShellScriptRunner(getSystemSpecificDefaultShell(), printStdOut, printErrOut)
+        fun defaultForSystem(suppressOutput: Boolean = false): ScriptRunner {
+            return ScriptRunner(getSystemSpecificDefaultShell(), suppressOutput)
         }
     }
-}
-
-open class ShellScriptRunner(
-    val shell: String,
-    private val printStdOut: Boolean = true,
-    private val printErrOut: Boolean = true
-) : ScriptRunner {
-
 
     open fun shellArgs(): List<String> {
         if (shell == "powershell") {
@@ -51,7 +45,7 @@ open class ShellScriptRunner(
         }
     }
 
-    override fun run(scriptContent: String): ScriptResult {
+    fun run(scriptContent: String): ScriptResult {
         val tmpScriptFile = File.createTempFile("houston", fileSuffix()).apply {
             deleteOnExit()
             val content = if (scriptContent.startsWith("#!")) {
@@ -66,13 +60,10 @@ open class ShellScriptRunner(
         try {
             val cmd = listOf(shell) + shellArgs() + listOf(tmpScriptFile.absolutePath)
 
-            val process = ProcessBuilder(cmd).start()
-
-            val (stdOut, errOut) = runBlocking { collectProcessOutput(process, printStdOut, printErrOut) }
-
-            process.waitFor()
-
-            return ScriptResult(process.exitValue(), stdOut, errOut)
+            val process = ProcessBuilder(cmd).redirectInput(ProcessBuilder.Redirect.INHERIT).start()
+            val (stdOutput, errOutput) = runBlocking { captureProcessOutput(process, !suppressOutput) }
+            val exitCode = process.waitFor()
+            return ScriptResult(exitCode, stdOutput, errOutput)
         } finally {
             if (!tmpScriptFile.delete()) {
                 printWarning("Could not delete temporary script file ${tmpScriptFile.absolutePath}")
@@ -81,30 +72,36 @@ open class ShellScriptRunner(
     }
 }
 
-private suspend fun collectProcessOutput(
+private suspend fun captureProcessOutput(
     process: Process,
-    printStdOut: Boolean,
-    printErrOut: Boolean
+    print: Boolean
 ): Pair<String, String> {
-    suspend fun readInputStream(
-        inputStream: InputStream,
-        print: Boolean
+    suspend fun readAndPrintInputStream(
+        inputStream: InputStream
     ): String {
         val sb = StringBuilder()
         withContext(IO) {
-            inputStream.bufferedReader().forEachLine { line ->
-                if (print) {
-                    println(line)
+            inputStream.bufferedReader().use { reader ->
+                var c: Int
+                while (true) {
+                    c = reader.read()
+                    if (c == -1) {
+                        break
+                    }
+                    sb.append(c.toChar())
+                    if (print) {
+                        print(c.toChar())
+                    }
                 }
-                sb.appendLine(line)
+
             }
         }
         return sb.toString()
     }
 
     return coroutineScope {
-        val stdOutJob = async { readInputStream(process.inputStream, printStdOut) }
-        val errOutJob = async { readInputStream(process.errorStream, printErrOut) }
+        val stdOutJob = async { readAndPrintInputStream(process.inputStream) }
+        val errOutJob = async { readAndPrintInputStream(process.errorStream) }
         stdOutJob.await() to errOutJob.await()
     }
 }
