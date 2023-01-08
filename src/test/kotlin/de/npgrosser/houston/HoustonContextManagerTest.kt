@@ -1,8 +1,9 @@
 package de.npgrosser.houston
 
 import de.npgrosser.houston.context.HoustonContextManager
-import de.npgrosser.houston.utils.isWindows
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.condition.EnabledOnOs
+import org.junit.jupiter.api.condition.OS
 import java.io.File
 import kotlin.test.assertEquals
 
@@ -60,10 +61,8 @@ class HoustonContextManagerTest {
     }
 
     @Test
+    @EnabledOnOs(OS.WINDOWS)
     fun testIsDirectoryTrustedWindowsPaths() {
-        if (isWindows()) {
-            return
-        }
         val pattern0 = "C:\\tmp\\houston\\all"
         val pattern1 = "C:\\tmp\\houston\\all\\*"
         val pattern2 = "C:\\tmp\\houston\\one"
