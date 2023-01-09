@@ -18,12 +18,12 @@ class OpenAiScriptGenerator(
         val sb = StringBuilder()
 
         sb.appendLine("#!/bin/env ${specification.lang}")
-        sb.appendLine()
+        sb.appendLine("#")
         sb.appendLine("# ${specification.lang} script to ${specification.goal}")
 
         if (specification.requirements.isNotEmpty()) {
             sb.appendLine("#")
-            sb.appendLine("# Additional Requirements & Information")
+            sb.appendLine("# Requirements:")
             specification.requirements.forEach { requirement ->
                 val withDash = if (requirement.startsWith("-")) requirement else "- $requirement"
                 withDash.lines().forEach { line ->

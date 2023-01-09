@@ -25,6 +25,30 @@ fun osInfo(): String {
 
 fun isWindows(): Boolean = System.getProperty("os.name").startsWith("Windows")
 
+fun toWslPath(path: String): String {
+    val driveLetter = path.substring(0, 1)
+    return "/mnt/${driveLetter.lowercase()}" + path.substring(2).replace("\\", "/")
+}
+
+fun which(command: String): File? {
+    val path = System.getenv("PATH")
+    val pathDirs = path.split(File.pathSeparatorChar)
+    for (dir in pathDirs) {
+        val fileNameCandidates = listOf(
+            command,
+            "$command.exe",
+            "$command.cmd",
+        )
+        for (fileName in fileNameCandidates) {
+            val file = File(dir, fileName)
+            if (file.exists()) {
+                return file
+            }
+        }
+    }
+    return null
+}
+
 fun getSystemSpecificDefaultShell() = if (isWindows()) "powershell" else "bash"
 
 private fun getLinuxDistroName(): String {

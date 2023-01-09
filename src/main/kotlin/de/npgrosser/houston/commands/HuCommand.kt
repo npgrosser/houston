@@ -18,8 +18,8 @@ import de.npgrosser.houston.generator.OpenAiScriptGenerator
 import de.npgrosser.houston.generator.ScriptSpecification
 import de.npgrosser.houston.openai.OpenAi
 import de.npgrosser.houston.utils.*
+import io.ktor.http.*
 import java.io.File
-import java.lang.IllegalArgumentException
 import java.util.*
 import kotlin.system.exitProcess
 import de.npgrosser.houston.utils.printError as defaultPrintError
@@ -69,6 +69,13 @@ class HuCommand : CliktCommand() {
         userConfig.defaultShell ?: osSpecificDefaultShell
     }
 
+    val contextShell by option(
+        "--context-shell",
+        help = "Specify the shell that Houston should use to evaluate command variables in context files"
+    ).defaultLazy {
+        userConfig.defaultContextShell ?: osSpecificDefaultShell
+    }
+
     // region openai
     val model by option("--model", help = "Use a different model than the default one").defaultLazy {
         userConfig.openAi?.model ?: DEFAULT_OPEN_AI_MODEL
@@ -84,8 +91,8 @@ class HuCommand : CliktCommand() {
     private var isPrepared = false
 
 
-    private fun printInfo(msg: Any?) {
-        if (isPrepared && minimal) return else println(msg)
+    private fun printInfo(msg: Any?, suffix: String = "\n") {
+        if (isPrepared && minimal) return else print(msg.toString() + suffix)
     }
 
     private fun printError(msg: String) {
@@ -147,7 +154,7 @@ class HuCommand : CliktCommand() {
 
         val contextInfo = mutableListOf<String>()
 
-        contextInfo.add("Must work on ${osInfo()}")
+        contextInfo.add("The script is meant to run on ${osInfo()}")
 
         if (commands.isNotEmpty()) {
             val scriptRunner = ScriptRunner.defaultForSystem()
@@ -170,29 +177,26 @@ class HuCommand : CliktCommand() {
         }
 
         for (file in files) {
-            contextInfo.add("Content of file ${file.name}:\n ```${file.readText()}```")
+            val codeBlock = "```\n${file.readText()}\n```"
+            contextInfo.add("Content of '${file}':\n${codeBlock}")
         }
 
-        val contextManager = HoustonContextManager()
+        val contextManager = HoustonContextManager(cmdRunner = ScriptRunner(contextShell, suppressOutput = true))
 
-        val contextFiles = try {
-            contextManager.getRelevantContextFiles(contexts)
-        } catch (e: IllegalArgumentException) {
-            printError(e.message ?: "Unknown error")
-            exitProcess(1)
-        }
-        for (contextFile in contextFiles) {
-
-            val content = contextManager.readAndEvaluateContextFileContentIfTrusted(contextFile)
-            if (content == null) {
-                printWarning("The directory ${contextFile.absoluteFile.parentFile} is not trusted - the context file ${contextFile.absoluteFile} will be ignored.")
-            } else {
-                printInfo("Adding context from ${contextFile.absoluteFile}")
-                if (content.isNotBlank()) {
-                    contextInfo.add(content)
-                }
+        val contextFilesResult = contextManager.evaluateContextFiles(contexts.map { contextCall ->
+            contextCall.split(":").let {
+                it[0] to it.drop(1)
             }
+        })
+
+        for (file in contextFilesResult.trustedContextFiles) {
+            printInfo("Adding context from ${file.absoluteFile}")
         }
+        for (file in contextFilesResult.untrustedContextFiles) {
+            printWarning("Ignoring untrusted context file ${file.absoluteFile}")
+        }
+
+        contextInfo.addAll(contextFilesResult.contextInfo)
 
         return ScriptSpecification(
             shell,
@@ -221,12 +225,13 @@ class HuCommand : CliktCommand() {
         )
 
         if (debug) {
-            printInfo(scriptSpecification)
+            printInfo(scriptSpecification.toString().lightGray())
             printInfo("Model: $model")
             printInfo("Max Tokens: $maxTokens")
             val (prompt, suffix) = scriptGenerator.generatePromptAndSuffix(scriptSpecification)
-            printInfo("Generated prompt:\n```\n$prompt\n```")
-            printInfo("Generated suffix:\n```\n$suffix\n```")
+            printInfo(prompt.gray(), "")
+            printInfo("<<<<< >>>>>".blue().bold())
+            printInfo(suffix.gray())
         }
 
         printInfo("Generating $shell script...".bold())

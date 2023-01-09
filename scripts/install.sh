@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/env bash
 
 if [ "$1" != "--rec" ]; then
   ./gradlew installDist

@@ -15,15 +15,20 @@ val configFile = File(houstonUserDir.toFile(), CONFIG_FILE_NAME)
 
 @Language("yaml")
 val defaultConfigContent = """
-    ## Overwrites the default shell that Houston should use to run commands (default: bash on linux and mac, powershell on windows)
+    ## Set the default shell that Houston uses to run generated script (can be overridden using the --shell option)
+    ## (default: bash on linux and mac, powershell on windows)
     # defaultShell: bash
-    
-    ## Overwrite the defaultRunMode (default: ask). 
+
+    ## Set the default shell that Houston uses to evaluate command variables in context files (can be overridden using the --context-shell option)
+    ## (default: bash on linux and mac, powershell on windows)
+    # defaultContextShell: bash
+
+    ## Set the defaultRunMode (default: ask). 
     ## Possible values:
     ##  ask: Ask for confirmation before running the generated script
     ##  dry: Print the generated script to stdout
     ##  force: Run the generated script without asking for confirmation
-    ## This can still be overwritten by the command line options -y and -n (which are aliases for --force and -dry)
+    ## Can be overridden by the command line options -y and -n (which are aliases for --force and -dry)
     # defaultRunMode: ask
     
     # Configuration options for the OpenAI API
@@ -35,6 +40,7 @@ val defaultConfigContent = """
 
 data class HoustonConfig(
     val defaultShell: String? = null,
+    val defaultContextShell: String? = null,
     val defaultRunMode: RunMode = RunMode.ASK,
     val openAi: HoustonOpenAiConfig? = null
 )

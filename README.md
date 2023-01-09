@@ -11,29 +11,14 @@ He translates your instructions, written in plain English, into Bash (or PowerSh
 
 - Git (git binary must be in your PATH for the ez-install script to work)
 - JDK 11 or higher
-- OPENAI_API_KEY environment variable set to [your OpenAI API secret key](https://beta.openai.com/account/api-keys)
 
 ### Linux and Mac
 
-#### Install
-
     curl https://raw.githubusercontent.com/npgrosser/Houston/master/scripts/ez-install.sh | sh
-
-#### Uninstall
-
-    curl https://raw.githubusercontent.com/npgrosser/Houston/master/scripts/uninstall.sh | sh
 
 ### Windows
 
-#### Install
-
     powershell -Command "& { (New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/npgrosser/Houston/master/scripts/ez-install.ps1') | Invoke-Expression }"
-
-Add the bin directory to your PATH environment variable. The script will tell you where it is located.
-
-#### Uninstall
-
-    powershell -Command "& { (New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/npgrosser/Houston/master/scripts/uninstall.ps1') | Invoke-Expression }"
 
 ## Usage
 
@@ -44,31 +29,28 @@ an instruction in natural language.
 
 See `hu ---help` for all available options.
 
-#### Examples:
+The OPENAI_API_KEY environment variable must be set to your OpenAI API key.   
+You can get one at [https://beta.openai.com/](https://beta.openai.com/).
 
-    hu tell me a dad joke
+_Instead of using the OPENAI_API_KEY environment variable, you can also specify the key in your config file.
+See [Configuration](#user-content-configuration) section for more information._
 
-    hu write a threejs example to index.html and open it in the browser
-  
-    hu run ubuntu container with interactive bash
+### Examples:
+
+- `hu run ubuntu container with interactive bash`
+- `hu find all pdf files in my home directory`
+- `hu delete unused docker images and networks`
+- `hu tell me a dad joke`
 
 ### Context
 
-Context is important.
-Depending on what you want Houston to do, you should give him as much information as possible to do the task.
-This could be the file tree, the type of the project in the current working directory, the contents of specific files, a
-list of installed
-packages, etc.
-The easiest way to provide that information is to just type it as part of your instruction.
-But depending on what information you want to provide, this might be cumbersome.
-That's why there are some alternatives that are meant to make your life easier.
-
-Note: Some information are so regularly relevant that they are always provided to Houston.
-This includes the OS name, version, architecture etc.
+To give Houston the best chance of completing tasks, it's important to provide relevant context.  
+This may include details about the file tree, contents of specific files, installed packages, your bash history etc.   
+For this purpose, there are some features that help you do this.
 
 #### Context Flags
 
-The easiest way to provide context information is to make use of one of the predefined context flags:
+The easiest way to provide context is to make use of one of the predefined context flags:
 
 ```
 Options:
@@ -93,6 +75,8 @@ See `hu ---help` for all available options.
 #### Context Files
 
 Another, more powerful and reusable way to provide context information is to use _context files_.
+Theoretically, you could also use them to mimic the functionality of the context flags.
+
 You can define directory specific _context files_ or global context files to describe additional requirements or
 information in plain
 english.
@@ -169,6 +153,40 @@ When this template is processed, the resulting output would look similar to this
     - The current user is nico.
     - The current time is 2020-10-10 12:00:00.
 
+##### Using arguments in command variables
+
+When using a named context via the -c flag, you can also pass arguments.
+For example:
+
+    hu tell me a joke -c lang:german
+
+Arguments are passed to the template, where you can access it as you would do with any normal shell script.
+Example:
+
+~/houston/lang.ctxt:
+
+    - When printing to the terminal, always use the ${echo $1} language.
+
+_Keep in mind that we need to use the echo command here because command variables are replaced with the output of the
+command_
+
+If you want to pass multiple arguments, you just need to make sure to add quotes around the _context spec_.
+
+    hu tell me a joke -c "langs:german english french"
+
+---
+
+_Note that the above example assumes that Bash is used as the shell to evaluate the command variables._     
+_When using a different shell, you might need to use a different syntax to access the arguments._   
+_For example, in Powershell, you would use the $args variable. Also, you would not need to use the echo command._
+
+    - When printing to the terminal, always use the ${$args[0]} language.
+
+### Debugging
+
+If you want to see what is actually passed to the API, you can use the `--debug` flag.    
+This is especially useful if you want to see how your context files are evaluated.
+
 ### Configuration
 
 See _~/houston/config.yml_ file for available configuration options.
@@ -178,24 +196,18 @@ It is automatically created when you run `hu` for the first time.
 
 ### Tips
 
-- Huston does not care about your system as much as you do. But he is kind enough to show you the script before
-  running it. You should always check it!
-- Houston is a terminal assistant and not a chatbot. When talking to him, use the imperative form (e.g. "tell me what
-  time it is" instead of "what time is it?").
-- Houston is not perfect. If he doesn't understand you, try to rephrase your request. Often it is enough to just append
-  a few more details.
 - Keep your context files small. The GPT-3 models are limited in the number of tokens per request. Try to only add the
   information
   that is really necessary. Especially the -c flag feature is meant to help you with this by providing a way to choose
   the relevant context information for each request.
-- You can also use command variables to embed context files in other context files.
+- You can use command variables to embed context files in other context files.
   E.g. (`${cat ~/houston/maven.ctxt && cat ~/houston/git.ctxt}`)
 - If you use Houston a lot, you might want to check https://beta.openai.com/account/usage from time to time.
 - Tools like [zsh-autosuggestions](https://github.com/zsh-users/zsh-autosuggestions)
   or [PSReadLine](https://devblogs.microsoft.com/powershell/psreadline-2-2-6-enables-predictive-intellisense-by-default/)
   will make it easier for you to work with Houston.
 
---- 
+---
 
 ## Related Projects
 

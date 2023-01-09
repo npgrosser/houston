@@ -21,16 +21,25 @@ open class ScriptRunner(
         }
     }
 
-    open fun shellArgs(): List<String> {
-        if (shell == "powershell") {
-            return listOf("-File")
+    private fun shellCommand(scriptFile: File, vararg args: String): List<String> {
+
+        val scriptFilePathString = if (isMicrosoftWslBash()) {
+            // wsl does not like windows paths
+            toWslPath(scriptFile.absolutePath)
+        } else {
+            scriptFile.absolutePath
         }
-        return emptyList()
+
+        return if (shell == "powershell") {
+            listOf(shell, "-File", scriptFilePathString, *args)
+        } else {
+            listOf(shell, scriptFilePathString, *args)
+        }
     }
 
     open fun fileExtension(): String {
         return when (shell) {
-            "powershell", "pwsh" -> return "ps1"
+            "power" + "shell", "pwsh" -> return "ps1"
             "shell", "bash" -> "sh"
             else -> ""
         }
@@ -45,7 +54,11 @@ open class ScriptRunner(
         }
     }
 
-    fun run(scriptContent: String): ScriptResult {
+    private fun isMicrosoftWslBash(): Boolean {
+        return isWindows() && shell == "bash" && which("bash")?.startsWith(System.getenv("windir") + "\\system32") ?: false
+    }
+
+    fun run(scriptContent: String, vararg args: String): ScriptResult {
         val tmpScriptFile = File.createTempFile("houston", fileSuffix()).apply {
             deleteOnExit()
             val content = if (scriptContent.startsWith("#!")) {
@@ -58,7 +71,7 @@ open class ScriptRunner(
         }
 
         try {
-            val cmd = listOf(shell) + shellArgs() + listOf(tmpScriptFile.absolutePath)
+            val cmd = shellCommand(tmpScriptFile, *args)
 
             val process = ProcessBuilder(cmd).redirectInput(ProcessBuilder.Redirect.INHERIT).start()
             val (stdOutput, errOutput) = runBlocking { captureProcessOutput(process, !suppressOutput) }

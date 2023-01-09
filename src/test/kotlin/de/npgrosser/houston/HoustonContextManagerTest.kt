@@ -2,6 +2,7 @@ package de.npgrosser.houston
 
 import de.npgrosser.houston.context.HoustonContextManager
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.condition.DisabledOnOs
 import org.junit.jupiter.api.condition.EnabledOnOs
 import org.junit.jupiter.api.condition.OS
 import java.io.File
@@ -15,9 +16,33 @@ class HoustonContextManagerTest {
         val expected = "Hello World"
 
         val manager = HoustonContextManager()
-        val actual = manager.evaluateContextFileContent(template)
+        val actual = manager.evaluateContextFileLine(template)
         assertEquals(expected, actual)
     }
+
+    @Test
+    @EnabledOnOs(OS.WINDOWS)
+    fun testEvaluateTemplateWithArgsWindows() {
+        val template = "result: \${echo \$args[0]} \${echo \$args[1]} \${echo \$args}"
+        val expected = "result: a b a\nb\nc"
+
+        val manager = HoustonContextManager()
+        val actual = manager.evaluateContextFileLine(template, "a", "b", "c").replace("\r", "")
+        assertEquals(expected, actual)
+
+    }
+
+    @Test
+    @DisabledOnOs(OS.WINDOWS)
+    fun testEvaluateTemplateWithArgsUnix() {
+        val template = "result: \${echo \$1} \${echo \$2} \${echo \$@}"
+        val expected = "result: a b a b c"
+
+        val manager = HoustonContextManager()
+        val actual = manager.evaluateContextFileLine(template, "a", "b", "c").replace("\r", "")
+        assertEquals(expected, actual)
+    }
+
 
     @Test
     fun testIsDirectoryTrusted() {
