@@ -1,6 +1,7 @@
 package de.npgrosser.houston
 
 import de.npgrosser.houston.context.HoustonContextManager
+import de.npgrosser.houston.context.findClosingBracket
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.DisabledOnOs
 import org.junit.jupiter.api.condition.EnabledOnOs
@@ -9,6 +10,21 @@ import java.io.File
 import kotlin.test.assertEquals
 
 class HoustonContextManagerTest {
+
+    @Test
+    fun testFindClosingBracket() {
+        val text = "abc(def(ghi)jkl)mno"
+        val index = findClosingBracket(text, 3, '(', ')')
+        assertEquals(15, index)
+
+        val text2 = "()"
+        val index2 = findClosingBracket(text2, 0, '(', ')')
+        assertEquals(1, index2)
+
+        val text3 = "abc((def)ghi)jkl"
+        val index3 = findClosingBracket(text3, 3, '(', ')')
+        assertEquals(12, index3)
+    }
 
     @Test
     fun testEvaluateTemplate() {

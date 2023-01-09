@@ -96,8 +96,9 @@ class HoustonContextManager(
     internal fun evaluateContextFileLine(template: String, vararg args: String): String {
         var result = template
         var startIndex = result.indexOf("\${")
+
         while (startIndex != -1) {
-            val endIndex = result.indexOf("}", startIndex)
+            val endIndex = findClosingBracket(result, startIndex)
             val cmd = result.substring(startIndex + 2, endIndex)
 
             // Execute the cmd and use its output as the new value
@@ -141,6 +142,22 @@ class HoustonContextManager(
 
         return EvaluateContextFilesResult(contextInfo, trustedContextFiles, untrustedContextFiles)
     }
+}
+
+internal fun findClosingBracket(text: String, openingBracketIndex: Int, opening: Char = '{', closing: Char = '}'): Int {
+    var bracketCount = 0
+    for (i in openingBracketIndex until text.length) {
+        val c = text[i]
+        if (c == opening) {
+            bracketCount++
+        } else if (c == closing) {
+            bracketCount--
+            if (bracketCount == 0) {
+                return i
+            }
+        }
+    }
+    return -1
 }
 
 internal data class EvaluateContextFilesResult(
