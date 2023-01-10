@@ -153,7 +153,7 @@ When this template is processed, the resulting output would look similar to this
     - The current user is nico.
     - The current time is 2020-10-10 12:00:00.
 
-##### Using arguments in command variables
+##### Using arguments in context files
 
 When using a named context via the -c flag, you can also pass arguments.
 For example:
@@ -181,6 +181,57 @@ _When using a different shell, you might need to use a different syntax to acces
 _For example, in Powershell, you would use the $args variable. Also, you would not need to use the echo command._
 
     - When printing to the terminal, always use the ${$args[0]} language.
+
+#### Example context files
+
+###### git.ctx
+
+A context file that adds the current git status as context information.
+
+    - The current git status is:
+    ```
+    ${git status}
+    ```
+
+###### docker.ctx
+
+A context file that adds the current docker status as context information.
+
+    - The current docker status is:
+    ```
+    ${docker ps -a}
+    ```
+    - The current docker images are:
+    ```
+    ${docker images}
+    ```
+
+###### history.ctx
+
+A context file that adds the last n (default 10) commands from your bash history as context information.
+
+    - The last ${1:-10} commands I ran were:
+    ```
+    ${tail -n ${1:-10} ~/.bash_history | cut -d ';' -f 2-}
+    ```
+
+###### env.ctx
+
+A context file that adds the current environment variables as context information.
+
+    - The current environment variables are:
+    ```
+    ${env}
+    ```
+
+###### file-tree.ctx
+
+A context file that adds the current file tree as context information.
+
+    - The current file tree is:
+    ```
+    ${tree -L ${1:-3}}
+    ```
 
 ### Debugging
 
