@@ -10,7 +10,9 @@ import kotlin.io.path.exists
 import kotlin.io.path.readLines
 
 val directoryContextFileNames = listOf(".houston", "houston.ctxt")
-val houstonUserDir: Path = Path.of(System.getProperty("user.home")).resolve("houston")
+val houstonUserDir: Path = (System.getenv("HOUSTON_USER_DIR")?.let { Path.of(it) }
+    ?: Path.of(System.getProperty("user.home")).resolve("houston")).normalize().absolute()
+
 
 class HoustonContextManager(
     private val houstonDefaultCtxtFile: Path = houstonUserDir.resolve("default.ctxt"),
