@@ -76,70 +76,59 @@ See `hu ---help` for all available options.
 
 Another, more powerful and reusable way to provide context information is to use _context files_.
 Theoretically, you could also use them to mimic the functionality of the context flags.
+A context file is a filed with a '.ctxt' extension that contains a list of information in plain english.
 
-You can define directory specific _context files_ or global context files to describe additional requirements or
-information in plain
-english.
-These will automatically be added as context information for every request.
-Supported file names for directory specific context files are 'houston.ctxt' and '.houston'.
-You can use both of them in the same directory.
-_Per convention, the '.houston' file is meant for local use only and should not be committed to version control._
+##### Default Context File
 
-For security reasons, you have to explicitly trust working directories by adding them to the
-~/houston/trusted_dirs file (using glob patterns).
+The  _~/houston/default.ctxt_ file is used by default.
+This is the context file that you would use to let Houston know about your individual preferences and requirements.
+For example, which package manager you prefer, what your favorite language is, what you like him to call you, etc.
+Use it to fine tune Houston to your needs.
 
-Example content of ~/houston/trusted_dirs:
+##### Named Context Files
+
+Named context files are context files that you can enable per instruction.
+They are useful for providing context information that is specific to a certain task.
+As the default context file, they are located in the _~/houston_ directory.
+You enable them by using the `-c` flag.
+
+    hu <instruction> -c <context-file-name>
+
+_Simple example:_
+
+###### ~/houston/pretty-output.ctxt:
+
+    - when printing to the terminal, always use capital letters and colored output.
+
+_Usage:_
+
+    hu print hello world -c pretty-output
+
+Per instruction you can enable multiple context files.
+
+    hu <instruction> -c <context-file-name-1> -c <context-file-name-2>
+
+##### Directory Context Files
+
+Directory context files are context files that are located in a directory and are automatically enabled for all
+instructions given in that directory or any of its subdirectories.
+Both 'houston.ctxt' and '.houston' are valid names for directory specific context files.
+
+For security reasons, you have to explicitly trust directories to allow Houston to use their context files.
+You do this by adding the directory to the _~~/houston/trusted_dirs_ file (using glob patterns).
+
+_Example content of ~/houston/trusted_dirs:_
 
     /home/user/my-name
     /home/user/my-name/my-projects
     /home/user/my-name/my-projects/**
 
-__
-
-Example houston.txt file content
-
-    - When printing to the terminal, always use capital letters and exclamation marks. 
-      This is the only way to get my attention.
-
-Think twice before adding a directory to the trusted_dirs file!
-Arbitrary commands could be executed just by talking to Houston in that directory.
-
-When a working directory is not trusted, the context files in it will just be ignored and a warning will be printed.
-Besides that, you can still use Houston as usual in that directory.
-
-#### Global context files
-
-You can also create a _~/houston/default.ctxt_ file which will always be used, no matter what directory you
-are in. It does not need to be trusted explicitly.
-This is the context file that you would use to let Houston know about your individual preferences and requirements.
-For example, which package manager you prefer, what your favorite language is, what you like him to call you, etc.
-Use it to fine tune Houston to your needs.
-
-Similar to the default.ctxt file, you can create arbitrary default files for specific contexts in the ~/houston/
-directory.
-The only difference to the default.ctxt file is that you have to explicitly enable them for each request by using the -c
-flag.
-You can use as many custom ctxt files as you want per request.
-
-Example:
-
-~/houston/pretty-output.ctxt:
-
-    - when printing to the terminal, always use capital letters and colored output.
-
-~/houston/maven.ctxt:
-
-    - this working directory is a maven project
-
-Usage:
-
-    hu add jackson as a dependency -c maven -c pretty-output
-
 #### Dynamic Context using Command Variables
 
-_Context files_ also support command variables, which allow you to add dynamic data.
-You can make use of them by using the following syntax: ${cmd}.
-These command variables will be evaluated on each request.
+Context files are not just simple text files.
+They are templates that can be filled with dynamic information using _command variables_.
+You can make use of them by using the '${cmd}' syntax in your context files.
+These command variables will be evaluated on each instruction and replaced with the output of the command.
 
 Here is an example of a Context File using command variables:
 
@@ -150,8 +139,11 @@ Here is an example of a Context File using command variables:
 When this template is processed, the resulting output would look similar to this:
 
     - The current working directory is /home/user/nico/houston.
-    - The current user is nico.
+    - The current user is joe.
     - The current time is 2020-10-10 12:00:00.
+
+When writing your own context files, keep in mind that all the data will be sent to OpenAI.
+Therefore, you should only use commands that do not reveal sensitive information.
 
 ##### Using arguments in context files
 
@@ -182,7 +174,9 @@ _For example, in Powershell, you would use the $args variable. Also, you would n
 
     - When printing to the terminal, always use the ${$args[0]} language.
 
-#### Example context files
+##### Examples
+
+Here are a few more examples of named context files to give you an idea of how they can be used.
 
 ###### git.ctx
 
