@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 repoUrl="https://github.com/npgrosser/Houston.git"
 
@@ -27,7 +27,7 @@ else # Clone repo
   cd "$repoDir" || exit 1
 fi
 
-sh scripts/install.sh
+bash "$(dirname "${BASH_SOURCE[0]}")/install.sh"
 
 # shellcheck disable=SC2181
 if [ $? -ne 0 ]; then
