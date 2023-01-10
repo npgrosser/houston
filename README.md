@@ -62,7 +62,7 @@ Options:
 
 See `hu ---help` for all available options.
 
-#### Examples using context flags:
+##### Examples
 
     hu check which of the project requirements are not meat by my system -f README.md
 
@@ -74,9 +74,9 @@ See `hu ---help` for all available options.
 
 #### Context Files
 
-Another, more powerful and reusable way to provide context information is to use _context files_.
+Another, more powerful way to provide context information is to use _context files_.
 Theoretically, you could also use them to mimic the functionality of the context flags.
-A context file is a filed with a '.ctxt' extension that contains a list of information in plain english.
+A context file is a file with a '.ctxt' extension that contains a list of information in plain english.
 
 ##### Default Context File
 
