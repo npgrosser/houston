@@ -2,8 +2,10 @@
   <img src="images/houston-transparent-enhanced.png" width="400">
 </p>
 
-Houston is a [context aware](#user-content-context) AI Assistant for your Terminal.
-He translates your instructions, written in plain English, into Bash (or PowerShell) scripts.
+Houston is a [context aware](#user-content-context) AI Assistant for your Terminal
+that allows you to accomplish a wide range of tasks by giving simple, natural language instructions.
+He translates your plain english instructions into Bash (or PowerShell) scripts,
+while giving you the option of reviewing the script before it is executed.
 
 ## Installation
 
@@ -22,25 +24,22 @@ He translates your instructions, written in plain English, into Bash (or PowerSh
 
 ## Usage
 
-_hu_ (/ˈhju:/) is Houston's nickname and the default command for working with him. It allows you to give Houston
-an instruction in natural language.
+The default command for interacting with Houston is `hu` (short for Houston).
+You can give Houston an instruction in natural language.
 
-    hu <instruction>
-
-See `hu ---help` for all available options.
-
-The OPENAI_API_KEY environment variable must be set to your OpenAI API key.   
-You can get one at [https://beta.openai.com/](https://beta.openai.com/).
-
-_Instead of using the OPENAI_API_KEY environment variable, you can also specify the key in your config file.
-See [Configuration](#user-content-configuration) section for more information._
-
-### Examples:
+For example:
 
 - `hu run ubuntu container with interactive bash`
 - `hu find all pdf files in my home directory`
 - `hu delete unused docker images and networks`
 - `hu tell me a dad joke`
+
+You can also pass command line arguments to provide context or configure the behavior of Houston. See the rest of the
+readme for more information.
+
+To use Houston, the OPENAI_API_KEY environment variable must be set to your OpenAI API key. You can get one
+at https://beta.openai.com. If you prefer, you can also specify the key in your config file, see the Configuration
+section for more information.
 
 ### Context
 
@@ -64,43 +63,49 @@ See `hu ---help` for all available options.
 
 ##### Examples
 
-    hu check which of the project requirements are not meat by my system -f README.md
-
-    hu build and install the project -f README.md
-
-    hu write a rap song about Houston -f README.md
-
-    hu tell me what kind of project this is -t -td 1
+- `hu check which of the project requirements are not met by my system -f README.md`
+- `hu build and install the project -f README.md`
+- `hu write a rap song about Houston -f README.md`
+- `hu tell me what kind of project this is -t -td 1`
 
 #### Context Files
 
-Another, more powerful way to provide context information is to use _context files_.
+Another, more powerful and generic way to provide context information is to use _context files_.
 Theoretically, you could also use them to mimic the functionality of the context flags.
-A context file is a file with a '.ctxt' extension that contains a list of information in plain english.
+A context file is a file with a '.ctxt' extension that contains a list of information in natural language.  
+You can also add dynamically generated information using
+_[command variables](#user-content-dynamic-context-using-command-variables)_.
 
 ##### Default Context File
 
-The  _~/houston/default.ctxt_ file is used by default.
+Information that you define in the  _~/houston/default.ctxt_ file is always provided to Houston.
 This is the context file that you would use to let Houston know about your individual preferences and requirements.
 For example, which package manager you prefer, what your favorite language is, what you like him to call you, etc.
 Use it to fine tune Houston to your needs.
 
+Example:
+
+    - If I want you to install something, use apt-get if the package is available there
+    - If the script gets long, use comments to explain what you are doing
+    - When printing to the console, use capital letters. I like it when you shout at me
+
 ##### Named Context Files
 
-Named context files are context files that you can enable per instruction.
+Named context files are context files that you can enable on a per-instruction basis.
 They are useful for providing context information that is specific to a certain task.
-As the default context file, they are located in the _~/houston_ directory.
+You can see them as a way to easily define your own context flags.
+Like the default context file, they are located in the _~/houston_ directory.
 You enable them by using the `-c` flag.
 
     hu <instruction> -c <context-file-name>
 
-_Simple example:_
+Example:
 
-###### ~/houston/pretty-output.ctxt:
+_~/houston/pretty-output.ctxt_
 
-    - when printing to the terminal, always use capital letters and colored output.
+    - when printing to the terminal, use colored output and fancy ASCII art
 
-_Usage:_
+Usage:
 
     hu print hello world -c pretty-output
 
@@ -117,18 +122,23 @@ Both 'houston.ctxt' and '.houston' are valid names for directory specific contex
 For security reasons, you have to explicitly trust directories to allow Houston to use their context files.
 You do this by adding the directory to the _~~/houston/trusted_dirs_ file (using glob patterns).
 
-_Example content of ~/houston/trusted_dirs:_
+Example content of _~/houston/trusted_dirs_:
 
     /home/user/my-name
     /home/user/my-name/my-projects
     /home/user/my-name/my-projects/**
 
+Example content of _/home/user/my-name/my-projects/houston.ctxt_:
+
+    - I prefer to use Maven as my build tool for Java and Kotlin projects
+    - If it's between 10pm and 6am, I want you to tell me to stop working
+
 #### Dynamic Context using Command Variables
 
 Context files are not just simple text files.
 They are templates that can be filled with dynamic information using _command variables_.
-You can make use of them by using the '${cmd}' syntax in your context files.
-These command variables will be evaluated on each instruction and replaced with the output of the command.
+You can make use of them by using the `${cmd}` syntax.
+These command variables are evaluated on each instruction and replaced with the output of the command.
 
 Here is an example of a Context File using command variables:
 
@@ -138,8 +148,8 @@ Here is an example of a Context File using command variables:
 
 When this template is processed, the resulting output would look similar to this:
 
-    - The current working directory is /home/user/nico/houston.
-    - The current user is joe.
+    - The current working directory is /home/user/my-name/houston.
+    - The current user is my-name.
     - The current time is 2020-10-10 12:00:00.
 
 When writing your own context files, keep in mind that all the data will be sent to OpenAI.
