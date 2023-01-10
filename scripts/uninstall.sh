@@ -8,10 +8,11 @@ if [ -d "$installdir" ]; then
   # Remove the Houston directory and all its contents
   sudo rm -rf "$installdir"
 
-  # Remove symbolic link
-  sudo rm "/usr/local/bin/hu"
+  # Remove symbolic links
+  sudo rm -f "/usr/local/bin/hu"
+  sudo rm -f "/usr/local/bin/houston"
 
-  echo "Houston has been uninstalled."
+  echo "Houston has been successfully removed from your system."
 else
-  echo "Houston was not installed."
+  echo "Could not find Houston installation to remove."
 fi

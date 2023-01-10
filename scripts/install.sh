@@ -32,6 +32,11 @@ ln -sf "$installdir/bin/hu" "/usr/local/bin/houston"
 
 echo "Houston has been installed."
 
-if ! echo "$PATH" | grep -q "/usr/local/bin"; then
+# check if /usr/local/bin is in the PATH using bash's builtin [[ ]] operator
+if [[ ":$PATH:" != *":/usr/local/bin:"* ]]; then
   echo "WARNING: In order to use the hu command, you must add /usr/local/bin to your PATH."
 fi
+
+uninstall_script_location="/usr/local/bin/houston-uninstall"
+cp scripts/uninstall.sh $uninstall_script_location
+echo "sudo rm /usr/local/bin/houston-uninstall" >>$uninstall_script_location
