@@ -27,7 +27,7 @@ else # Clone repo
   cd "$repoDir" || exit 1
 fi
 
-bash "$(dirname "${BASH_SOURCE[0]}")/install.sh"
+./scripts/install.sh
 
 # shellcheck disable=SC2181
 if [ $? -ne 0 ]; then
