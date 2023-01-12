@@ -120,7 +120,7 @@ instructions given in that directory or any of its subdirectories.
 Both 'houston.ctxt' and '.houston' are valid names for directory specific context files.
 
 For security reasons, you have to explicitly trust directories to allow Houston to use their context files.
-You do this by adding the directory to the _~~/houston/trusted_dirs_ file (using glob patterns).
+You do this by adding the directory to the _~/houston/trusted_dirs_ file (using glob patterns).
 
 Example content of _~/houston/trusted_dirs_:
 
