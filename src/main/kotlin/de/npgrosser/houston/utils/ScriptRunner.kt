@@ -15,6 +15,9 @@ open class ScriptRunner(
     val shell: String,
     private val suppressOutput: Boolean = false,
 ) {
+    // shell might be a path, so we only want the last part.
+    private val shellName: String = File(shell).name
+
     companion object {
         fun defaultForSystem(suppressOutput: Boolean = false): ScriptRunner {
             return ScriptRunner(getSystemSpecificDefaultShell(), suppressOutput)
@@ -30,7 +33,7 @@ open class ScriptRunner(
             scriptFile.absolutePath
         }
 
-        return if (shell == "powershell") {
+        return if (shellName == "powershell") {
             listOf(shell, "-File", scriptFilePathString, *args)
         } else {
             listOf(shell, scriptFilePathString, *args)
@@ -38,8 +41,8 @@ open class ScriptRunner(
     }
 
     open fun fileExtension(): String {
-        return when (shell) {
-            "power" + "shell", "pwsh" -> return "ps1"
+        return when (shellName) {
+            "powershell", "pwsh" -> return "ps1"
             "shell", "bash" -> "sh"
             else -> ""
         }
@@ -55,7 +58,7 @@ open class ScriptRunner(
     }
 
     private fun isMicrosoftWslBash(): Boolean {
-        return isWindows() && shell == "bash" && which("bash")?.startsWith(System.getenv("windir") + "\\system32") ?: false
+        return isWindows() && shellName == "bash" && which("bash")?.startsWith(System.getenv("windir") + "\\system32") ?: false
     }
 
     fun run(scriptContent: String, vararg args: String): ScriptResult {
@@ -64,7 +67,7 @@ open class ScriptRunner(
             val content = if (scriptContent.startsWith("#!")) {
                 scriptContent
             } else {
-                "#!/usr/bin/env $shell".trimIndent() + System.lineSeparator() + scriptContent
+                "#!/usr/bin/env $shellName".trimIndent() + System.lineSeparator() + scriptContent
             }
             writeText(content)
             setExecutable(true)

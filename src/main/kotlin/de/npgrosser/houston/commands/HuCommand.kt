@@ -89,7 +89,7 @@ class HuCommand : CliktCommand() {
     // endregion openai
 
     private var isPrepared = false
-
+    private var shellName = lazy { File(shell).name }
 
     private fun printInfo(msg: Any?, suffix: String = "\n") {
         if (isPrepared && minimal) return else print(msg.toString() + suffix)
@@ -199,7 +199,7 @@ class HuCommand : CliktCommand() {
         contextInfo.addAll(contextFilesResult.contextInfo)
 
         return ScriptSpecification(
-            shell,
+            shellName.value,
             scriptGoal,
             contextInfo
         )
@@ -234,12 +234,11 @@ class HuCommand : CliktCommand() {
             printInfo(suffix.gray())
         }
 
-        printInfo("Generating $shell script...".bold())
+        printInfo("Generating $shellName script...".bold())
 
         val script = scriptGenerator.generate(scriptSpecification)
 
-        printInfo("\rHere is a $shell script that should do the trick:".bold())
-
+        printInfo("\rHere is a $shellName script that should do the trick:".bold())
 
 
         if (minimal) {
