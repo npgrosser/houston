@@ -6,6 +6,13 @@ import de.npgrosser.houston.utils.Cache
 
 const val DEFAULT_OPEN_AI_MODEL = "text-davinci-003"
 
+val modelAliases: Map<String, String> = mapOf(
+    "text" to "text-davinci-003",
+    "davinci" to "text-davinci-003",
+    "code" to "code-davinci-002",
+    "codex" to "code-davinci-002"
+)
+
 class OpenAiScriptGenerator(
     private val openAi: OpenAi,
     private val stop: List<String> = emptyList(),
@@ -47,7 +54,7 @@ class OpenAiScriptGenerator(
             suffix = suffix,
             topP = topP,
             stop = stop,
-            model = model,
+            model = modelAliases[model] ?: model,
             maxTokens = maxTokens
         )
 
