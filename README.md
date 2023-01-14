@@ -2,10 +2,10 @@
   <img src="images/houston-transparent-enhanced.png" width="400">
 </p>
 
-Houston is an AI Assistant and script generator for your Terminal that allows you to accomplish a wide range of tasks by
+Houston is an AI Assistant and Script Generator for your Terminal that allows you to accomplish a wide range of tasks by
 giving simple, natural language instructions. It is [context aware](#user-content-context) and can translate your plain
 English instructions into
-simple scripts or shell commands, while giving you the option to review it before it is executed. 
+simple scripts or shell commands, while giving you the option to review it before it is executed.
 On Linux and Mac, the default scripting language is Bash, and on Windows, it is PowerShell.
 
 ## Installation
