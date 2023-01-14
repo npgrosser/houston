@@ -34,7 +34,7 @@ val defaultConfigContent = """
     # Configuration options for the OpenAI API
     openAi:
       apiKey: null # if not null, will be used instead of the OPENAI_API_KEY environment variable
-      model: "$DEFAULT_OPEN_AI_MODEL"
+      # model: "$DEFAULT_OPEN_AI_MODEL"
       maxTokens: 1024
     """.trimIndent()
 
