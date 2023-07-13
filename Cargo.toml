@@ -1,0 +1,19 @@
+[package]
+name = "houston-rust"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+serde_yaml = "0.9.21"
+serde = { version = "1.0.164", features = ["derive"] }
+openai_api_rust = "0.1.8"
+colored = "2.0.0"
+clap = { version = "4.3.11", features = ["derive"] }
+tempfile = "3.2.0"
+dirs = "5.0.1"
+
+[[bin]]
+name = "hu"
+path = "src/main.rs"
