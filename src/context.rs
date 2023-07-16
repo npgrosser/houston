@@ -4,6 +4,38 @@ use crate::runner::SimpleScriptRunner;
 use crate::template::{DefaultTemplateEvaluator, TemplateEvaluator};
 
 
+#[derive(Debug)]
+pub struct ContextCall {
+    pub name: String,
+    pub args: Vec<String>,
+}
+
+impl ContextCall {
+    pub fn args_as_str_vec(&self) -> Vec<&str> {
+        self.args.iter().map(|s| s.as_str()).collect::<Vec<&str>>()
+    }
+
+    pub fn parse(input: &str) -> Self {
+        let mut parts = input.split(':');
+        let name = parts.next().unwrap().to_string();
+
+
+        let rest = parts.collect::<Vec<&str>>();
+
+        let args = if rest.is_empty() {
+            vec![]
+        } else {
+            let joined = rest.join(":");
+            joined.split(' ').map(|s| s.to_string()).collect()
+        };
+
+        ContextCall {
+            name,
+            args,
+        }
+    }
+}
+
 pub fn does_default_ctxt_exist() -> bool {
     get_context_path_by_name("default").exists()
 }
@@ -36,38 +68,6 @@ fn read_context_file_by_name(name: &str) -> io::Result<String> {
     std::fs::read_to_string(file_path)
 }
 
-
-#[derive(Debug)]
-pub struct ContextCall {
-    pub name: String,
-    pub args: Vec<String>,
-}
-
-impl ContextCall {
-    pub fn args_as_str_vec(&self) -> Vec<&str> {
-        self.args.iter().map(|s| s.as_str()).collect::<Vec<&str>>()
-    }
-
-    pub fn parse(input: &str) -> Self {
-        let mut parts = input.split(':');
-        let name = parts.next().unwrap().to_string();
-
-
-        let rest = parts.collect::<Vec<&str>>();
-
-        let args = if rest.is_empty() {
-            vec![]
-        } else {
-            let joined = rest.join(":");
-            joined.split(' ').map(|s| s.to_string()).collect()
-        };
-
-        ContextCall {
-            name,
-            args,
-        }
-    }
-}
 
 #[cfg(test)]
 mod tests {

@@ -58,15 +58,15 @@ pub struct OpenAiConfig {
     pub(crate) model: String,
 }
 
-
-#[derive(Serialize, Deserialize, Debug)]
-#[serde(rename_all = "camelCase", default)]
-pub struct UserConfig {
-    pub(crate) default_shell: Option<String>,
-    pub(crate) default_context_shell: Option<String>,
-    pub(crate) default_run_mode: RunMode,
-    open_ai: OpenAiConfig,
+impl Default for OpenAiConfig {
+    fn default() -> Self {
+        OpenAiConfig {
+            api_key: None,
+            model: DEFAULT_CHAT_MODEL.to_string(),
+        }
+    }
 }
+
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct StrictOpenAiConfig {
@@ -82,14 +82,13 @@ pub struct StrictUserConfig {
     pub open_ai: StrictOpenAiConfig,
 }
 
-
-impl Default for OpenAiConfig {
-    fn default() -> Self {
-        OpenAiConfig {
-            api_key: None,
-            model: DEFAULT_CHAT_MODEL.to_string(),
-        }
-    }
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase", default)]
+pub struct UserConfig {
+    pub(crate) default_shell: Option<String>,
+    pub(crate) default_context_shell: Option<String>,
+    pub(crate) default_run_mode: RunMode,
+    open_ai: OpenAiConfig,
 }
 
 impl Default for UserConfig {
@@ -100,26 +99,6 @@ impl Default for UserConfig {
             default_run_mode: RunMode::Ask,
             open_ai: OpenAiConfig::default(),
         }
-    }
-}
-
-impl UserConfig {
-    fn default_for_system() -> Self {
-        let shell = get_default_shell_for_system();
-        UserConfig {
-            default_shell: Some(shell.clone()),
-            default_context_shell: Some(shell),
-            default_run_mode: RunMode::Ask,
-            open_ai: OpenAiConfig::default(),
-        }
-    }
-}
-
-fn get_default_shell_for_system() -> String {
-    let os = std::env::consts::OS;
-    match os {
-        "windows" => "powershell".to_string(),
-        _ => "bash".to_string(),
     }
 }
 
@@ -167,6 +146,24 @@ impl UserConfig {
             default_run_mode: self.default_run_mode.clone(),
             open_ai,
         })
+    }
+
+    fn default_for_system() -> Self {
+        let shell = get_default_shell_for_system();
+        UserConfig {
+            default_shell: Some(shell.clone()),
+            default_context_shell: Some(shell),
+            default_run_mode: RunMode::Ask,
+            open_ai: OpenAiConfig::default(),
+        }
+    }
+}
+
+fn get_default_shell_for_system() -> String {
+    let os = std::env::consts::OS;
+    match os {
+        "windows" => "powershell".to_string(),
+        _ => "bash".to_string(),
     }
 }
 

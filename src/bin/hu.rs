@@ -1,20 +1,17 @@
 use std::io;
-use crate::{generator::{create_chat_prompt, ScriptGenerator}, runner::SimpleScriptRunner};
 
 use clap::Parser;
 use colored::*;
-use crate::config::{ApiKey, StrictUserConfig};
-
-use crate::context::{ContextCall, does_default_ctxt_exist, read_and_evaluate_context_file_by_name};
-use crate::runner::ScriptRunner;
-
-
-mod config;
-mod generator;
-mod runner;
-mod template;
-mod context;
-mod tmp_file;
+use houston::{
+    config,
+    generator,
+    config::{ApiKey, StrictUserConfig},
+    context::{ContextCall, does_default_ctxt_exist, read_and_evaluate_context_file_by_name},
+    generator::create_chat_prompt,
+    runner::SimpleScriptRunner,
+};
+use houston::generator::ScriptGenerator;
+use houston::runner::ScriptRunner;
 
 
 #[derive(Parser, Debug)]

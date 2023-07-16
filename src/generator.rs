@@ -15,22 +15,6 @@ pub trait ScriptGenerator {
 
 
 #[derive(Debug)]
-pub struct ChatGptScriptGenerator {
-    api_key: ApiKey,
-    model: String,
-}
-
-
-impl ChatGptScriptGenerator {
-    pub fn new(api_key: ApiKey, model: String) -> Self {
-        ChatGptScriptGenerator {
-            api_key,
-            model,
-        }
-    }
-}
-
-#[derive(Debug)]
 pub struct ChatPrompt {
     system_message: String,
     user_message: String,
@@ -57,34 +41,20 @@ impl ChatPrompt {
     }
 }
 
-pub fn create_chat_prompt(spec: &ScriptSpecification) -> ChatPrompt {
-    let lang = &spec.lang;
-    let system_message = format!("You are a {0} script generator.\n\
-    The user gives you a description/goal for a {0} script and sometimes a list of extra requirements or context.\n\
-    You respond with the {0} script.\nNote that you only respond with the script, not additional explanation, no code block etc.\n\
-    Your response must be a valid {0} script. So never use ''' to indicate the script start and end", lang);
-
-    let mut user_message = spec.instruction.clone();
-
-    if !spec.requirements.is_empty() {
-        user_message.push_str("\n\nAdditional Requirements:\n");
-        for requirement in &spec.requirements {
-            if !requirement.is_empty() {
-                user_message.push('\n');
-                if !requirement.starts_with('-') {
-                    user_message.push_str("- ")
-                }
-                user_message.push_str(requirement);
-            }
-        }
-    }
-
-    ChatPrompt {
-        system_message,
-        user_message,
-    }
+#[derive(Debug)]
+pub struct ChatGptScriptGenerator {
+    api_key: ApiKey,
+    model: String,
 }
 
+impl ChatGptScriptGenerator {
+    pub fn new(api_key: ApiKey, model: String) -> Self {
+        ChatGptScriptGenerator {
+            api_key,
+            model,
+        }
+    }
+}
 
 impl ScriptGenerator for ChatGptScriptGenerator {
     fn generate(&self, spec: &ScriptSpecification) -> String {
@@ -115,5 +85,33 @@ impl ScriptGenerator for ChatGptScriptGenerator {
 
         let choice = completion.choices.first().unwrap();
         choice.message.as_ref().unwrap().content.clone().trim().to_string()
+    }
+}
+
+pub fn create_chat_prompt(spec: &ScriptSpecification) -> ChatPrompt {
+    let lang = &spec.lang;
+    let system_message = format!("You are a {0} script generator.\n\
+    The user gives you a description/goal for a {0} script and sometimes a list of extra requirements or context.\n\
+    You respond with the {0} script.\nNote that you only respond with the script, not additional explanation, no code block etc.\n\
+    Your response must be a valid {0} script. So never use ''' to indicate the script start and end", lang);
+
+    let mut user_message = spec.instruction.clone();
+
+    if !spec.requirements.is_empty() {
+        user_message.push_str("\n\nAdditional Requirements:\n");
+        for requirement in &spec.requirements {
+            if !requirement.is_empty() {
+                user_message.push('\n');
+                if !requirement.starts_with('-') {
+                    user_message.push_str("- ")
+                }
+                user_message.push_str(requirement);
+            }
+        }
+    }
+
+    ChatPrompt {
+        system_message,
+        user_message,
     }
 }

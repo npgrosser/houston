@@ -1,5 +1,5 @@
 [package]
-name = "houston-rust"
+name = "houston"
 version = "0.1.0"
 edition = "2021"
 
@@ -16,4 +16,4 @@ dirs = "5.0.1"
 
 [[bin]]
 name = "hu"
-path = "src/main.rs"
+path = "src/bin/hu.rs"
