@@ -1,11 +1,11 @@
-<p align="center">
-  <img src="images/houston-transparent-enhanced.png" width="400">
-</p>
+# Houston
 
-Houston is an GPT-based Terminal Assistant.
-It allows you to accomplish a wide range of tasks by
-giving simple, natural language instructions.
-It supports providing context information to help it complete tasks in a more meaningful way.
+Houston is a simple GPT-based command-line tool that allows you to generate shell commands or scripts by
+giving simple, natural language instructions.   
+It also supports providing context information about your system to improve the quality of the generated output.
+
+Works on Linux, Mac and Windows.
+You can use it for Bash, Powershell, Zsh, Python, or any other shell or scripting language.
 
 ## Requirements
 
@@ -54,8 +54,8 @@ _[command variables](#user-content-dynamic-context-using-command-variables)_.
 Information that you define in the  _~/houston/default.ctxt_ file is always provided to Houston.
 This is the context file that you would use to let Houston know about your individual preferences and requirements.
 For example, which package manager you prefer, what your favorite language is, what you like him to call you, etc.
-Use it to fine tune Houston to your needs.
-The content of context file should be written as a list of bullet points.
+
+The content of a context file should be written as a list of bullet points.
 
 Example:
 
@@ -201,17 +201,3 @@ This is especially useful if you want to see how your context files are evaluate
 
 See _~/houston/config.yml_ file for available configuration options.
 It is automatically created when you run `hu` for the first time.
-
----
-
-### Tips
-
-- Keep your context files small. The GPT models are limited in the number of tokens per request. Try to only add the
-  information
-  that is really necessary.
-- You can use command variables to embed context files in other context files.
-  E.g. (`${cat ~/houston/maven.ctxt && cat ~/houston/git.ctxt}`)
-- If you use Houston a lot, you might want to check https://platform.openai.com/account/usage from time to time.
-- Tools like [zsh-autosuggestions](https://github.com/zsh-users/zsh-autosuggestions)
-  or [PSReadLine](https://devblogs.microsoft.com/powershell/psreadline-2-2-6-enables-predictive-intellisense-by-default/)
-  will make it easier for you to work with Houston.
