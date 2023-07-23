@@ -1,8 +1,7 @@
 # Houston
 
-Houston is a simple GPT-based command-line tool that allows you to generate shell commands or scripts by
-giving simple, natural language instructions.   
-It also supports providing context information about your system to improve the quality of the generated output.
+Houston is a simple GPT-based command-line tool that lets you generate shell commands or scripts by
+giving simple, natural language instructions.
 
 Works on Linux, Mac and Windows.
 You can use it for Bash, Powershell, Zsh, Python, or any other shell or scripting language.
@@ -31,9 +30,6 @@ For example:
 - `hu delete unused docker images and networks`
 - `hu tell me a dad joke`
 
-You can also pass command line arguments to provide context or configure the behavior of Houston. See the rest of the
-readme for more information.
-
 To use Houston, the OPENAI_API_KEY environment variable must be set to your OpenAI API key. You can get one
 at https://platform.openai.com. If you prefer, you can also specify the key in your config file, see the Configuration
 section for more information.
@@ -41,9 +37,11 @@ section for more information.
 ### Context
 
 Houston does not know anything about your system. So, to give Houston the best chance of completing tasks,
-you should provide it with the context information it needs to complete the task.
+you can provide context information.
 This may include details about the file tree, contents of specific files, installed packages, your bash history etc.   
 For this purpose, there are some features that help you do this.
+
+#### Context Files
 
 A context file is a file with a '.ctxt' extension that contains a list of information in natural language.  
 You can also add dynamically generated information using
@@ -59,9 +57,9 @@ The content of a context file should be written as a list of bullet points.
 
 Example:
 
-    - If I want you to install something, use apt-get if possible
-    - If the script gets long, use comments to explain what you are doing
-    - When printing to the console, use capital letters. I like it when you shout at me.
+    - If I want you to install something, use brew if the package is avaiable there
+    - If the script gets more complex, use comments to explain what you are doing
+    - When printing to the console, use capital letters. I like it when you shout at me
 
 ##### Named Context Files
 
@@ -85,6 +83,10 @@ Usage:
 Per instruction you can enable multiple context files.
 
     hu <instruction> -c <context-file-name-1> -c <context-file-name-2>
+
+Example:
+
+    hu tell me a joke -c pretty-output -c dark-humor
 
 #### Dynamic Context using Command Variables
 
