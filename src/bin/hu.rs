@@ -105,7 +105,7 @@ impl Application {
 
         self.print_verbose(&format!("Context calls: {:?}", context_calls));
 
-        if !does_default_ctxt_exist() {
+        if does_default_ctxt_exist() {
             context_calls.push(ContextCall {
                 name: "default".to_string(),
                 args: vec![],
@@ -199,4 +199,3 @@ fn main() {
     let application = Application::from(options, config::load_user_config_strict().unwrap());
     application.run();
 }
-
