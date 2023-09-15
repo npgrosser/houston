@@ -14,9 +14,8 @@ You can use it for Bash, Powershell, Zsh, Python, or any other shell or scriptin
 
 ## Installation
 
-    git clone git@github.com:npgrosser/Houston.git
-    cd Houston
-    cargo install --path .
+    cargo install --git https://github.com/npgrosser/Houston.git
+    
 
 ## Usage
 
