@@ -1,0 +1,7 @@
+defaultShell: bash
+defaultContextShell: bash
+defaultRunMode: ask
+openAi:
+  apiKey: null
+  model: gpt-4
+

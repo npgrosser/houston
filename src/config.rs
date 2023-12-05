@@ -168,7 +168,15 @@ fn get_default_shell_for_system() -> String {
 }
 
 pub fn get_houston_dir() -> std::path::PathBuf {
-    dirs::home_dir().unwrap().join(CONFIG_DIR_NAME)
+    // Use the XDG_CONFIG_HOME environment variable if it's set, otherwise fallback to $HOME/.config
+    let xdg_config_home = std::env::var("XDG_CONFIG_HOME")
+        .ok()
+        .map(std::path::PathBuf::from)
+        .unwrap_or_else(|| {
+            dirs::home_dir().expect("Home directory not found").join(".config")
+        });
+
+    xdg_config_home.join(CONFIG_DIR_NAME)
 }
 
 /// load user config from the default config file location

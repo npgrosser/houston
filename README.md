@@ -200,5 +200,6 @@ This is especially useful if you want to see how your context files are evaluate
 
 ### Configuration
 
-See _~/houston/config.yml_ file for available configuration options.
-It is automatically created when you run `hu` for the first time.
+See _example-config.yml_ for available configuration options.
+The configuration is automatically created when you run `hu` for the first time.
+It will either be in `$XDG_CONFIG_HOME/houston/config.yml` or `~/.config/houston/config.yml`.
